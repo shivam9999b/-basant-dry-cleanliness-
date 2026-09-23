@@ -1,9 +1,10 @@
 /* =========================================================
    BASANTA DRY CLEANLINESS
-   content-admin.js
-   COMPLETE CONTENT ADMIN + IMAGE UPLOAD
+   CONTENT ADMIN JS
+   Homepage + Articles + Contact + Services
 ========================================================= */
 
+"use strict";
 
 /* =========================================================
    SUPABASE CONFIG
@@ -12,1612 +13,13 @@
 const SUPABASE_URL = "https://ubsyhqkefhtskxjpjzbf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVic3locWtlZmh0c2t4anBqemJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4Mzk4NjQsImV4cCI6MjEwNTQxNTg2NH0.00-JsYNjdmb7OV51Tly1W8A9grQ9GR9E66E3Yyas-j8";
 
-const STORAGE_BUCKET = "website-image";
-
-let supabaseClient = null;
-
-if (
-  SUPABASE_URL &&
-  SUPABASE_ANON_KEY &&
-  window.supabase
-) {
-  supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
-}
-
-
-/* =========================================================
-   DOM
-========================================================= */
-
-const heroForm =
-  document.getElementById("heroForm");
-
-const articleForm =
-  document.getElementById("articleForm");
-
-const contactForm =
-  document.getElementById("contactForm");
-
-const articlesList =
-  document.getElementById("articlesList");
-
-const articleEditor =
-  document.getElementById("articleEditor");
-
-const newArticleBtn =
-  document.getElementById("newArticleBtn");
-
-const closeEditorBtn =
-  document.getElementById("closeEditorBtn");
-
-const cancelArticleBtn =
-  document.getElementById("cancelArticleBtn");
-
-const heroImageFile =
-  document.getElementById("heroImageFile");
-
-const heroImagePreview =
-  document.getElementById("heroImagePreview");
-
-const imageUploadMessage =
-  document.getElementById("imageUploadMessage");
-
-
-/* =========================================================
-   INIT
-========================================================= */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    if (!supabaseClient) {
-
-      showGlobalError(
-        "Supabase configuration missing. SUPABASE_URL और SUPABASE_ANON_KEY डालें।"
-      );
-
-      return;
-    }
-
-    setupEvents();
-
-    loadHero();
-
-    loadArticles();
-
-    loadContact();
-
-  }
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
 );
 
-
-/* =========================================================
-   EVENTS
-========================================================= */
-
-function setupEvents() {
-
-  if (heroForm) {
-    heroForm.addEventListener(
-      "submit",
-      saveHero
-    );
-  }
-
-
-  if (articleForm) {
-    articleForm.addEventListener(
-      "submit",
-      saveArticle
-    );
-  }
-
-
-  if (contactForm) {
-    contactForm.addEventListener(
-      "submit",
-      saveContact
-    );
-  }
-
-
-  if (newArticleBtn) {
-    newArticleBtn.addEventListener(
-      "click",
-      openNewArticle
-    );
-  }
-
-
-  if (closeEditorBtn) {
-    closeEditorBtn.addEventListener(
-      "click",
-      closeArticleEditor
-    );
-  }
-
-
-  if (cancelArticleBtn) {
-    cancelArticleBtn.addEventListener(
-      "click",
-      closeArticleEditor
-    );
-  }
-
-
-  /* HERO IMAGE PREVIEW */
-
-  if (heroImageFile) {
-
-    heroImageFile.addEventListener(
-      "change",
-      previewHeroImage
-    );
-
-  }
-
-  if (heroUploadBtn) {
-
-    heroUploadBtn.addEventListener(
-      "click",
-      async function () {
-
-        try {
-          if (!heroImageFile?.files?.length) {
-            showImageMessage("पहले image select करें।", true);
-            return;
-          }
-
-          heroUploadBtn.disabled = true;
-          heroUploadBtn.textContent = "Uploading...";
-          await uploadHeroImage();
-
-        } catch (error) {
-          console.error("Hero Image Upload Error:", error);
-          showImageMessage(getSupabaseError(error, "Image upload नहीं हुई।"), true);
-        } finally {
-          heroUploadBtn.disabled = false;
-          heroUploadBtn.textContent = "🖼️ Upload Image";
-        }
-      }
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   HERO LOAD
-========================================================= */
-
-async function loadHero() {
-
-  try {
-
-    const {
-      data,
-      error
-    } = await supabaseClient
-      .from("site_content")
-      .select("*")
-      .eq("section", "hero")
-      .eq("active", true)
-      .maybeSingle();
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    if (!data) {
-
-      console.log(
-        "Hero content अभी database में नहीं है।"
-      );
-
-      return;
-    }
-
-
-    setValue(
-      "heroTitle",
-      data.title
-    );
-
-    setValue(
-      "heroSubtitle",
-      data.subtitle
-    );
-
-    setValue(
-      "heroDescription",
-      data.description
-    );
-
-    setValue(
-      "heroButton",
-      data.button_text
-    );
-
-    setValue(
-      "heroButtonLink",
-      data.button_link
-    );
-
-    setValue(
-      "heroImage",
-      data.image_url
-    );
-
-
-    if (data.image_url) {
-
-      showHeroPreview(
-        data.image_url
-      );
-
-    }
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Hero Load Error:",
-      error
-    );
-
-    showMessage(
-      "heroMessage",
-      getSupabaseError(
-        error,
-        "Homepage data load नहीं हुई।"
-      ),
-      true
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   HERO IMAGE PREVIEW
-========================================================= */
-
-function previewHeroImage() {
-
-  const file =
-    heroImageFile?.files?.[0];
-
-
-  if (!file) {
-    return;
-  }
-
-
-  if (!file.type.startsWith("image/")) {
-
-    showImageMessage(
-      "कृपया केवल image file चुनें।",
-      true
-    );
-
-    heroImageFile.value = "";
-
-    return;
-  }
-
-
-  const maxSize =
-    5 * 1024 * 1024;
-
-
-  if (file.size > maxSize) {
-
-    showImageMessage(
-      "Image 5MB से छोटी होनी चाहिए।",
-      true
-    );
-
-    heroImageFile.value = "";
-
-    return;
-  }
-
-
-  const reader =
-    new FileReader();
-
-
-  reader.onload =
-    function(event) {
-
-      showHeroPreview(
-        event.target.result
-      );
-
-    };
-
-
-  reader.readAsDataURL(file);
-
-
-  showImageMessage(
-    "Image select हो गई। Save Homepage दबाएँ।",
-    false
-  );
-
-}
-
-
-/* =========================================================
-   HERO PREVIEW
-========================================================= */
-
-function showHeroPreview(
-  imageUrl
-) {
-
-  if (!heroImagePreview) {
-    return;
-  }
-
-
-  heroImagePreview.innerHTML = `
-
-    <img
-      src="${escapeHTML(imageUrl)}"
-      alt="Homepage Image Preview"
-    >
-
-  `;
-
-}
-
-
-/* =========================================================
-   UPLOAD HERO IMAGE
-========================================================= */
-
-async function uploadHeroImage() {
-
-  const file =
-    heroImageFile?.files?.[0];
-
-
-  if (!file) {
-
-    return getValue(
-      "heroImage"
-    );
-
-  }
-
-
-  if (
-    !file.type.startsWith("image/")
-  ) {
-
-    throw new Error(
-      "कृपया valid image file चुनें।"
-    );
-
-  }
-
-
-  if (
-    file.size >
-    5 * 1024 * 1024
-  ) {
-
-    throw new Error(
-      "Image 5MB से छोटी होनी चाहिए।"
-    );
-
-  }
-
-
-  showImageMessage(
-    "Image upload हो रही है...",
-    false
-  );
-
-
-  const extension =
-    getFileExtension(
-      file.name
-    );
-
-
-  const fileName =
-    `hero-${Date.now()}-${randomString(8)}.${extension}`;
-
-
-  const filePath =
-    `homepage/${fileName}`;
-
-
-  const {
-    error: uploadError
-  } = await supabaseClient
-    .storage
-    .from(STORAGE_BUCKET)
-    .upload(
-      filePath,
-      file,
-      {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: file.type
-      }
-    );
-
-
-  if (uploadError) {
-
-    throw uploadError;
-
-  }
-
-
-  const {
-    data
-  } =
-    supabaseClient
-      .storage
-      .from(STORAGE_BUCKET)
-      .getPublicUrl(
-        filePath
-      );
-
-
-  if (
-    !data ||
-    !data.publicUrl
-  ) {
-
-    throw new Error(
-      "Uploaded image का public URL नहीं मिला।"
-    );
-
-  }
-
-
-  const imageUrl =
-    data.publicUrl;
-
-
-  setValue(
-    "heroImage",
-    imageUrl
-  );
-
-
-  showHeroPreview(
-    imageUrl
-  );
-
-
-  showImageMessage(
-    "Image successfully upload हो गई।",
-    false
-  );
-
-
-  return imageUrl;
-
-}
-
-
-/* =========================================================
-   HERO SAVE
-========================================================= */
-
-async function saveHero(
-  event
-) {
-
-  event.preventDefault();
-
-
-  const button =
-    heroForm?.querySelector(
-      'button[type="submit"]'
-    );
-
-
-  const oldText =
-    button
-      ? button.textContent
-      : "";
-
-
-  try {
-
-    if (button) {
-
-      button.disabled =
-        true;
-
-      button.textContent =
-        "Saving...";
-
-    }
-
-
-    /*
-      पहले image upload
-    */
-
-    let imageUrl =
-      getValue("heroImage");
-
-
-    if (
-      heroImageFile &&
-      heroImageFile.files &&
-      heroImageFile.files.length > 0
-    ) {
-
-      imageUrl =
-        await uploadHeroImage();
-
-    }
-
-
-    const payload = {
-
-      section:
-        "hero",
-
-      title:
-        getValue("heroTitle"),
-
-      subtitle:
-        getValue("heroSubtitle"),
-
-      description:
-        getValue("heroDescription"),
-
-      button_text:
-        getValue("heroButton"),
-
-      button_link:
-        getValue("heroButtonLink"),
-
-      image_url:
-        imageUrl,
-
-      active:
-        true
-
-    };
-
-
-    /*
-      Existing hero खोजें
-    */
-
-    const {
-      data: existing,
-      error: findError
-    } = await supabaseClient
-      .from("site_content")
-      .select("id")
-      .eq("section", "hero")
-      .limit(1)
-      .maybeSingle();
-
-
-    if (findError) {
-
-      throw findError;
-
-    }
-
-
-    let result;
-
-
-    if (existing) {
-
-      result =
-        await supabaseClient
-          .from("site_content")
-          .update(payload)
-          .eq(
-            "id",
-            existing.id
-          );
-
-    }
-
-    else {
-
-      result =
-        await supabaseClient
-          .from("site_content")
-          .insert(payload);
-
-    }
-
-
-    if (result.error) {
-
-      throw result.error;
-
-    }
-
-
-    showMessage(
-      "heroMessage",
-      "Homepage और image successfully save हो गई।",
-      false
-    );
-
-
-    if (heroImageFile) {
-
-      heroImageFile.value =
-        "";
-
-    }
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Hero Save Error:",
-      error
-    );
-
-
-    showMessage(
-      "heroMessage",
-      getSupabaseError(
-        error,
-        "Homepage save नहीं हुई।"
-      ),
-      true
-    );
-
-  }
-
-  finally {
-
-    if (button) {
-
-      button.disabled =
-        false;
-
-      button.textContent =
-        oldText;
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   ARTICLES LOAD
-========================================================= */
-
-async function loadArticles() {
-
-  if (!articlesList) {
-    return;
-  }
-
-
-  articlesList.innerHTML =
-    `<div class="loading">
-      Articles loading...
-    </div>`;
-
-
-  try {
-
-    const {
-      data,
-      error
-    } = await supabaseClient
-      .from("articles")
-      .select("*")
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      );
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    if (
-      !data ||
-      data.length === 0
-    ) {
-
-      articlesList.innerHTML =
-        `<div class="loading">
-          अभी कोई article नहीं है।
-        </div>`;
-
-      return;
-
-    }
-
-
-    articlesList.innerHTML =
-      "";
-
-
-    data.forEach(
-      article => {
-
-        articlesList.appendChild(
-          createArticleRow(article)
-        );
-
-      }
-    );
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Articles Load Error:",
-      error
-    );
-
-
-    articlesList.innerHTML =
-      `<div class="loading">
-        Articles load नहीं हुए।
-      </div>`;
-
-  }
-
-}
-
-
-/* =========================================================
-   ARTICLE ROW
-========================================================= */
-
-function createArticleRow(
-  article
-) {
-
-  const row =
-    document.createElement(
-      "div"
-    );
-
-
-  row.className =
-    "article-admin-row";
-
-
-  const image =
-    article.image_url
-
-      ? `<img
-          src="${escapeHTML(
-            article.image_url
-          )}"
-          alt=""
-        >`
-
-      : `<div class="article-admin-placeholder">
-          📰
-        </div>`;
-
-
-  row.innerHTML = `
-
-    <div class="article-admin-image">
-      ${image}
-    </div>
-
-
-    <div class="article-admin-info">
-
-      <h3>
-        ${escapeHTML(
-          article.title ||
-          "Untitled Article"
-        )}
-      </h3>
-
-
-      <p>
-        ${escapeHTML(
-          article.category ||
-          "No category"
-        )}
-      </p>
-
-
-      <small>
-        ${
-          article.published
-            ? "Published"
-            : "Draft"
-        }
-      </small>
-
-    </div>
-
-
-    <div class="article-admin-actions">
-
-      <button
-        type="button"
-        class="edit-article-btn"
-      >
-        Edit
-      </button>
-
-
-      <button
-        type="button"
-        class="publish-article-btn"
-      >
-        ${
-          article.published
-            ? "Unpublish"
-            : "Publish"
-        }
-      </button>
-
-
-      <button
-        type="button"
-        class="delete-article-btn"
-      >
-        Delete
-      </button>
-
-    </div>
-
-  `;
-
-
-  row
-    .querySelector(
-      ".edit-article-btn"
-    )
-    .addEventListener(
-      "click",
-      () => {
-
-        openEditArticle(
-          article
-        );
-
-      }
-    );
-
-
-  row
-    .querySelector(
-      ".publish-article-btn"
-    )
-    .addEventListener(
-      "click",
-      () => {
-
-        togglePublished(
-          article
-        );
-
-      }
-    );
-
-
-  row
-    .querySelector(
-      ".delete-article-btn"
-    )
-    .addEventListener(
-      "click",
-      () => {
-
-        deleteArticle(
-          article
-        );
-
-      }
-    );
-
-
-  return row;
-
-}
-
-
-/* =========================================================
-   NEW ARTICLE
-========================================================= */
-
-function openNewArticle() {
-
-  if (!articleEditor) {
-    return;
-  }
-
-
-  articleEditor.hidden =
-    false;
-
-
-  if (articleForm) {
-    articleForm.reset();
-  }
-
-
-  setValue(
-    "articleId",
-    ""
-  );
-
-
-  setValue(
-    "articleAuthor",
-    "Basanta"
-  );
-
-
-  const published =
-    document.getElementById(
-      "articlePublished"
-    );
-
-
-  if (published) {
-
-    published.checked =
-      true;
-
-  }
-
-
-  const editorTitle =
-    document.getElementById(
-      "editorTitle"
-    );
-
-
-  if (editorTitle) {
-
-    editorTitle.textContent =
-      "New Article";
-
-  }
-
-
-  articleEditor.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-
-}
-
-
-/* =========================================================
-   EDIT ARTICLE
-========================================================= */
-
-function openEditArticle(
-  article
-) {
-
-  if (!articleEditor) {
-    return;
-  }
-
-
-  articleEditor.hidden =
-    false;
-
-
-  setValue(
-    "articleId",
-    article.id
-  );
-
-  setValue(
-    "articleTitle",
-    article.title
-  );
-
-  setValue(
-    "articleSlug",
-    article.slug
-  );
-
-  setValue(
-    "articleCategory",
-    article.category
-  );
-
-  setValue(
-    "articleDescription",
-    article.description
-  );
-
-  setValue(
-    "articleImage",
-    article.image_url
-  );
-
-  setValue(
-    "articleContent",
-    article.content
-  );
-
-  setValue(
-    "articleAuthor",
-    article.author ||
-    "Basanta"
-  );
-
-
-  const published =
-    document.getElementById(
-      "articlePublished"
-    );
-
-
-  if (published) {
-
-    published.checked =
-      Boolean(
-        article.published
-      );
-
-  }
-
-
-  const editorTitle =
-    document.getElementById(
-      "editorTitle"
-    );
-
-
-  if (editorTitle) {
-
-    editorTitle.textContent =
-      "Edit Article";
-
-  }
-
-
-  articleEditor.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-
-}
-
-
-/* =========================================================
-   CLOSE ARTICLE EDITOR
-========================================================= */
-
-function closeArticleEditor() {
-
-  if (!articleEditor) {
-    return;
-  }
-
-
-  articleEditor.hidden =
-    true;
-
-
-  if (articleForm) {
-    articleForm.reset();
-  }
-
-
-  setValue(
-    "articleId",
-    ""
-  );
-
-
-  clearMessage(
-    "articleMessage"
-  );
-
-}
-
-
-/* =========================================================
-   SAVE ARTICLE
-========================================================= */
-
-async function saveArticle(
-  event
-) {
-
-  event.preventDefault();
-
-
-  const button =
-    articleForm?.querySelector(
-      'button[type="submit"]'
-    );
-
-
-  const oldText =
-    button
-      ? button.textContent
-      : "";
-
-
-  if (button) {
-
-    button.disabled =
-      true;
-
-    button.textContent =
-      "Saving...";
-
-  }
-
-
-  try {
-
-    let slug =
-      getValue("articleSlug");
-
-
-    const title =
-      getValue("articleTitle");
-
-
-    if (!slug) {
-
-      slug =
-        createSlug(title);
-
-    }
-
-
-    const payload = {
-
-      title:
-        title,
-
-      slug:
-        slug,
-
-      category:
-        getValue("articleCategory"),
-
-      description:
-        getValue("articleDescription"),
-
-      image_url:
-        getValue("articleImage"),
-
-      content:
-        getValue("articleContent"),
-
-      author:
-        getValue("articleAuthor") ||
-        "Basanta",
-
-      published:
-        document.getElementById(
-          "articlePublished"
-        )?.checked || false
-
-    };
-
-
-    const articleId =
-      getValue("articleId");
-
-
-    let result;
-
-
-    if (articleId) {
-
-      result =
-        await supabaseClient
-          .from("articles")
-          .update(payload)
-          .eq(
-            "id",
-            articleId
-          );
-
-    }
-
-    else {
-
-      result =
-        await supabaseClient
-          .from("articles")
-          .insert(payload);
-
-    }
-
-
-    if (result.error) {
-      throw result.error;
-    }
-
-
-    showMessage(
-      "articleMessage",
-      "Article successfully save हो गया।",
-      false
-    );
-
-
-    await loadArticles();
-
-
-    setTimeout(
-      () => {
-        closeArticleEditor();
-      },
-      800
-    );
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Article Save Error:",
-      error
-    );
-
-
-    showMessage(
-      "articleMessage",
-      getSupabaseError(
-        error,
-        "Article save नहीं हुआ।"
-      ),
-      true
-    );
-
-  }
-
-  finally {
-
-    if (button) {
-
-      button.disabled =
-        false;
-
-      button.textContent =
-        oldText;
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   PUBLISH / UNPUBLISH
-========================================================= */
-
-async function togglePublished(
-  article
-) {
-
-  try {
-
-    const {
-      error
-    } = await supabaseClient
-      .from("articles")
-      .update({
-        published:
-          !article.published
-      })
-      .eq(
-        "id",
-        article.id
-      );
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    await loadArticles();
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Publish Error:",
-      error
-    );
-
-
-    alert(
-      getSupabaseError(
-        error,
-        "Article status change नहीं हुआ।"
-      )
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   DELETE ARTICLE
-========================================================= */
-
-async function deleteArticle(
-  article
-) {
-
-  const confirmed =
-    confirm(
-      `"${article.title}" delete करना है?`
-    );
-
-
-  if (!confirmed) {
-    return;
-  }
-
-
-  try {
-
-    const {
-      error
-    } = await supabaseClient
-      .from("articles")
-      .delete()
-      .eq(
-        "id",
-        article.id
-      );
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    await loadArticles();
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Delete Article Error:",
-      error
-    );
-
-
-    alert(
-      getSupabaseError(
-        error,
-        "Article delete नहीं हुआ।"
-      )
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   CONTACT LOAD
-========================================================= */
-
-async function loadContact() {
-
-  try {
-
-    const {
-      data,
-      error
-    } = await supabaseClient
-      .from("site_contact")
-      .select("*")
-      .limit(1)
-      .maybeSingle();
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    if (!data) {
-      return;
-    }
-
-
-    setValue(
-      "contactPhone",
-      data.phone
-    );
-
-    setValue(
-      "contactWhatsapp",
-      data.whatsapp
-    );
-
-    setValue(
-      "contactEmail",
-      data.email
-    );
-
-    setValue(
-      "contactAddress",
-      data.address
-    );
-
-    setValue(
-      "contactInstagram",
-      data.instagram
-    );
-
-    setValue(
-      "contactFacebook",
-      data.facebook
-    );
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Contact Load Error:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   CONTACT SAVE
-========================================================= */
-
-async function saveContact(
-  event
-) {
-
-  event.preventDefault();
-
-
-  const payload = {
-
-    phone:
-      getValue("contactPhone"),
-
-    whatsapp:
-      getValue("contactWhatsapp"),
-
-    email:
-      getValue("contactEmail"),
-
-    address:
-      getValue("contactAddress"),
-
-    instagram:
-      getValue("contactInstagram"),
-
-    facebook:
-      getValue("contactFacebook")
-
-  };
-
-
-  try {
-
-    const {
-      data: existing,
-      error: findError
-    } = await supabaseClient
-      .from("site_contact")
-      .select("id")
-      .limit(1)
-      .maybeSingle();
-
-
-    if (findError) {
-      throw findError;
-    }
-
-
-    let result;
-
-
-    if (existing) {
-
-      result =
-        await supabaseClient
-          .from("site_contact")
-          .update(payload)
-          .eq(
-            "id",
-            existing.id
-          );
-
-    }
-
-    else {
-
-      result =
-        await supabaseClient
-          .from("site_contact")
-          .insert(payload);
-
-    }
-
-
-    if (result.error) {
-      throw result.error;
-    }
-
-
-    showMessage(
-      "contactMessage",
-      "Contact information save हो गई।",
-      false
-    );
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Contact Save Error:",
-      error
-    );
-
-
-    showMessage(
-      "contactMessage",
-      getSupabaseError(
-        error,
-        "Contact save नहीं हुई।"
-      ),
-      true
-    );
-
-  }
-
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error("Supabase config missing: SUPABASE_URL और SUPABASE_ANON_KEY भरें।");
 }
 
 
@@ -1625,274 +27,1850 @@ async function saveContact(
    HELPERS
 ========================================================= */
 
-function getValue(id) {
+function $(id) {
+  return document.getElementById(id);
+}
 
-  const element =
-    document.getElementById(id);
+function setMessage(id, message, success = true) {
+  const el = $(id);
 
+  if (!el) return;
 
-  if (!element) {
-    return "";
-  }
+  el.textContent = message;
+  el.style.color = success ? "green" : "red";
+}
 
+function escapeHTML(value) {
+  if (value === null || value === undefined) return "";
 
-  return (
-    element.value || ""
-  ).trim();
-
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 
-function setValue(
-  id,
-  value
-) {
+/* =========================================================
+   PAGE LOAD
+========================================================= */
 
-  const element =
-    document.getElementById(id);
+document.addEventListener("DOMContentLoaded", async () => {
 
+  console.log("Basanta Content Admin Loaded");
 
-  if (!element) {
-    return;
-  }
+  await loadHomepage();
+  await loadContact();
+  await loadArticles();
+  await loadServices();
 
+  setupHomepage();
+  setupArticles();
+  setupContact();
+  setupServices();
 
-  element.value =
-    value || "";
-
-}
-
-
-function clearMessage(id) {
-
-  const element =
-    document.getElementById(id);
+});
 
 
-  if (element) {
-    element.textContent = "";
-  }
+/* =========================================================
+   HOMEPAGE
+========================================================= */
 
-}
+async function loadHomepage() {
 
+  try {
 
-function showMessage(
-  id,
-  message,
-  error = false
-) {
+    const { data, error } = await supabaseClient
+      .from("homepage_content")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
 
-  const element =
-    document.getElementById(id);
+    if (error) {
+      console.error("Homepage load error:", error);
+      return;
+    }
 
+    if (!data) return;
 
-  if (!element) {
-    return;
-  }
+    if ($("heroTitle"))
+      $("heroTitle").value = data.title || "";
 
+    if ($("heroSubtitle"))
+      $("heroSubtitle").value = data.subtitle || "";
 
-  element.textContent =
-    message;
+    if ($("heroDescription"))
+      $("heroDescription").value = data.description || "";
 
+    if ($("heroButton"))
+      $("heroButton").value = data.button_text || "";
 
-  element.style.color =
-    error
-      ? "#c0392b"
-      : "#176b52";
+    if ($("heroButtonLink"))
+      $("heroButtonLink").value = data.button_link || "";
 
-}
+    if ($("heroImage")) {
+      $("heroImage").value = data.image_url || "";
+      showImagePreview(
+        "heroImagePreview",
+        data.image_url
+      );
+    }
 
+  } catch (error) {
 
-function showImageMessage(
-  message,
-  error = false
-) {
-
-  if (!imageUploadMessage) {
-    return;
-  }
-
-
-  imageUploadMessage.textContent =
-    message;
-
-
-  imageUploadMessage.style.color =
-    error
-      ? "#c0392b"
-      : "#176b52";
-
-}
-
-
-function showGlobalError(
-  message
-) {
-
-  console.error(
-    message
-  );
-
-  alert(message);
-
-}
-
-
-function getFileExtension(
-  fileName
-) {
-
-  const parts =
-    fileName.split(".");
-
-
-  return (
-    parts.length > 1
-      ? parts.pop().toLowerCase()
-      : "jpg"
-  );
-
-}
-
-
-function randomString(
-  length
-) {
-
-  const chars =
-    "abcdefghijklmnopqrstuvwxyz0123456789";
-
-
-  let result = "";
-
-
-  for (
-    let i = 0;
-    i < length;
-    i++
-  ) {
-
-    result +=
-      chars[
-        Math.floor(
-          Math.random() *
-          chars.length
-        )
-      ];
+    console.error("Homepage error:", error);
 
   }
 
-
-  return result;
-
 }
 
 
-function createSlug(
-  text
-) {
+function setupHomepage() {
 
-  return String(text || "")
-    .toLowerCase()
-    .trim()
-    .replace(
-      /[^\w\s-]/g,
-      ""
-    )
-    .replace(
-      /\s+/g,
-      "-"
-    )
-    .replace(
-      /-+/g,
-      "-"
-    );
+  const form = $("heroForm");
 
-}
+  if (form) {
+
+    form.addEventListener("submit", async (e) => {
+
+      e.preventDefault();
+
+      const payload = {
+
+        title: $("heroTitle")?.value.trim() || "",
+
+        subtitle:
+          $("heroSubtitle")?.value.trim() || "",
+
+        description:
+          $("heroDescription")?.value.trim() || "",
+
+        button_text:
+          $("heroButton")?.value.trim() || "",
+
+        button_link:
+          $("heroButtonLink")?.value.trim() || "",
+
+        image_url:
+          $("heroImage")?.value.trim() || ""
+
+      };
 
 
-function escapeHTML(
-  value
-) {
+      const { data: existing } = await supabaseClient
+        .from("homepage_content")
+        .select("id")
+        .limit(1)
+        .maybeSingle();
 
-  return String(
-    value ?? ""
-  )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
+
+      let result;
+
+
+      if (existing?.id) {
+
+        result = await supabaseClient
+          .from("homepage_content")
+          .update(payload)
+          .eq("id", existing.id);
+
+      } else {
+
+        result = await supabaseClient
+          .from("homepage_content")
+          .insert(payload);
+
+      }
+
+
+      if (result.error) {
+
+        console.error(result.error);
+
+        setMessage(
+          "heroMessage",
+          "Homepage save error: " +
+            result.error.message,
+          false
+        );
+
+        return;
+
+      }
+
+
+      setMessage(
+        "heroMessage",
+        "Homepage saved successfully."
+      );
+
+    });
+
+  }
+
+
+  /* HERO IMAGE */
+
+  const uploadBtn = $("heroUploadBtn");
+
+  if (uploadBtn) {
+
+    uploadBtn.addEventListener("click", async () => {
+
+      const file = $("heroImageFile")?.files?.[0];
+
+      if (!file) {
+
+        setMessage(
+          "imageUploadMessage",
+          "पहले image select करें।",
+          false
+        );
+
+        return;
+
+      }
+
+
+      const url = await uploadImage(
+        file,
+        "hero"
+      );
+
+
+      if (url) {
+
+        if ($("heroImage"))
+          $("heroImage").value = url;
+
+        showImagePreview(
+          "heroImagePreview",
+          url
+        );
+
+        setMessage(
+          "imageUploadMessage",
+          "Image uploaded successfully."
+        );
+
+      }
+
+    });
+
+  }
 
 }
 
 
 /* =========================================================
-   SUPABASE ERROR
+   IMAGE UPLOAD
 ========================================================= */
 
-function getSupabaseError(
-  error,
-  fallback
-) {
+async function uploadImage(file, folder) {
 
-  if (!error) {
-    return fallback;
+  try {
+
+    const extension =
+      file.name.split(".").pop().toLowerCase();
+
+    const fileName =
+      folder +
+      "/" +
+      Date.now() +
+      "-" +
+      Math.random()
+        .toString(36)
+        .substring(2) +
+      "." +
+      extension;
+
+
+    const { error } =
+      await supabaseClient.storage
+        .from("website-image")
+        .upload(
+          fileName,
+          file,
+          {
+            cacheControl: "3600",
+            upsert: false
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Storage upload error:",
+        error
+      );
+
+      alert(
+        "Image upload failed:\n" +
+        error.message
+      );
+
+      return null;
+
+    }
+
+
+    const { data } =
+      supabaseClient.storage
+        .from("website-image")
+        .getPublicUrl(fileName);
+
+
+    return data.publicUrl;
+
+  } catch (error) {
+
+    console.error(error);
+
+    return null;
+
+  }
+
+}
+
+
+function showImagePreview(elementId, url) {
+
+  const el = $(elementId);
+
+  if (!el) return;
+
+
+  if (!url) {
+
+    el.innerHTML =
+      "<span>No image selected</span>";
+
+    return;
+
   }
 
 
-  console.error(
-    "Supabase:",
-    error
+  el.innerHTML = `
+    <img
+      src="${escapeHTML(url)}"
+      alt="Preview"
+      style="
+        max-width:100%;
+        max-height:220px;
+        object-fit:cover;
+        border-radius:10px;
+      "
+    >
+  `;
+
+}
+
+
+/* =========================================================
+   ARTICLES
+========================================================= */
+
+async function loadArticles() {
+
+  const list = $("articlesList");
+
+  if (!list) return;
+
+
+  const { data, error } = await supabaseClient
+    .from("articles")
+    .select("*")
+    .order("created_at", {
+      ascending: false
+    });
+
+
+  if (error) {
+
+    console.error(error);
+
+    list.innerHTML =
+      "<p>Articles load नहीं हो सके।</p>";
+
+    return;
+
+  }
+
+
+  if (!data || data.length === 0) {
+
+    list.innerHTML =
+      "<p>No articles found.</p>";
+
+    return;
+
+  }
+
+
+  list.innerHTML = data.map(article => `
+
+    <div class="article-admin-card">
+
+      <div>
+
+        <h3>
+          ${escapeHTML(article.title)}
+        </h3>
+
+        <p>
+          ${escapeHTML(article.category || "")}
+        </p>
+
+        <small>
+          ${article.published ? "Published" : "Draft"}
+        </small>
+
+      </div>
+
+      <div>
+
+        <button
+          type="button"
+          onclick="editArticle('${article.id}')"
+        >
+          Edit
+        </button>
+
+        <button
+          type="button"
+          onclick="deleteArticle('${article.id}')"
+        >
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join("");
+
+}
+
+
+function setupArticles() {
+
+  $("newArticleBtn")?.addEventListener(
+    "click",
+    newArticle
   );
 
 
-  if (
-    error.code === "42501"
-  ) {
+  $("closeEditorBtn")?.addEventListener(
+    "click",
+    closeArticleEditor
+  );
 
-    return (
-      "RLS policy ने इस action को रोक दिया। " +
-      "site_content/articles/site_contact की policy check करें।"
+
+  $("cancelArticleBtn")?.addEventListener(
+    "click",
+    closeArticleEditor
+  );
+
+
+  $("articleForm")?.addEventListener(
+    "submit",
+    saveArticle
+  );
+
+
+  $("articleUploadBtn")?.addEventListener(
+    "click",
+    async () => {
+
+      const file =
+        $("articleImageFile")?.files?.[0];
+
+      if (!file) {
+
+        alert("पहले article image select करें।");
+
+        return;
+
+      }
+
+
+      const url = await uploadImage(
+        file,
+        "articles"
+      );
+
+
+      if (url) {
+
+        $("articleImage").value = url;
+
+        showImagePreview(
+          "articleImagePreview",
+          url
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+function newArticle() {
+
+  $("articleEditor").hidden = false;
+
+  $("editorTitle").textContent =
+    "New Article";
+
+
+  $("articleId").value = "";
+
+  $("articleTitle").value = "";
+
+  $("articleSlug").value = "";
+
+  $("articleCategory").value = "";
+
+  $("articleDescription").value = "";
+
+  $("articleImage").value = "";
+
+  $("articleContent").value = "";
+
+  $("articleAuthor").value = "Basanta";
+
+  $("articlePublished").checked = true;
+
+
+  showImagePreview(
+    "articleImagePreview",
+    ""
+  );
+
+}
+
+
+async function editArticle(id) {
+
+  const { data, error } =
+    await supabaseClient
+      .from("articles")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+
+  }
+
+
+  $("articleEditor").hidden = false;
+
+  $("editorTitle").textContent =
+    "Edit Article";
+
+
+  $("articleId").value =
+    data.id || "";
+
+  $("articleTitle").value =
+    data.title || "";
+
+  $("articleSlug").value =
+    data.slug || "";
+
+  $("articleCategory").value =
+    data.category || "";
+
+  $("articleDescription").value =
+    data.description || "";
+
+  $("articleImage").value =
+    data.image_url || "";
+
+  $("articleContent").value =
+    data.content || "";
+
+  $("articleAuthor").value =
+    data.author || "Basanta";
+
+  $("articlePublished").checked =
+    data.published !== false;
+
+
+  showImagePreview(
+    "articleImagePreview",
+    data.image_url
+  );
+
+
+  window.scrollTo({
+    top: $("articleEditor").offsetTop - 20,
+    behavior: "smooth"
+  });
+
+}
+
+
+async function saveArticle(e) {
+
+  e.preventDefault();
+
+
+  const id =
+    $("articleId").value.trim();
+
+
+  const payload = {
+
+    title:
+      $("articleTitle").value.trim(),
+
+    slug:
+      $("articleSlug").value.trim(),
+
+    category:
+      $("articleCategory").value.trim(),
+
+    description:
+      $("articleDescription").value.trim(),
+
+    image_url:
+      $("articleImage").value.trim(),
+
+    content:
+      $("articleContent").value.trim(),
+
+    author:
+      $("articleAuthor").value.trim() ||
+      "Basanta",
+
+    published:
+      $("articlePublished").checked
+
+  };
+
+
+  let result;
+
+
+  if (id) {
+
+    result = await supabaseClient
+      .from("articles")
+      .update(payload)
+      .eq("id", id);
+
+  } else {
+
+    result = await supabaseClient
+      .from("articles")
+      .insert(payload);
+
+  }
+
+
+  if (result.error) {
+
+    console.error(result.error);
+
+    setMessage(
+      "articleMessage",
+      result.error.message,
+      false
+    );
+
+    return;
+
+  }
+
+
+  setMessage(
+    "articleMessage",
+    "Article saved successfully."
+  );
+
+
+  await loadArticles();
+
+
+  setTimeout(
+    closeArticleEditor,
+    500
+  );
+
+}
+
+
+async function deleteArticle(id) {
+
+  if (!confirm("Article delete करें?")) return;
+
+
+  const { error } =
+    await supabaseClient
+      .from("articles")
+      .delete()
+      .eq("id", id);
+
+
+  if (error) {
+
+    alert(
+      "Delete failed: " +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  await loadArticles();
+
+}
+
+
+function closeArticleEditor() {
+
+  if ($("articleEditor"))
+    $("articleEditor").hidden = true;
+
+}
+
+
+/* =========================================================
+   CONTACT
+========================================================= */
+
+async function loadContact() {
+
+  const { data, error } =
+    await supabaseClient
+      .from("contact_information")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+
+  if (error) {
+
+    console.error(
+      "Contact load error:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  if (!data) return;
+
+
+  if ($("contactPhone"))
+    $("contactPhone").value =
+      data.phone || "";
+
+  if ($("contactWhatsapp"))
+    $("contactWhatsapp").value =
+      data.whatsapp || "";
+
+  if ($("contactEmail"))
+    $("contactEmail").value =
+      data.email || "";
+
+  if ($("contactAddress"))
+    $("contactAddress").value =
+      data.address || "";
+
+  if ($("contactInstagram"))
+    $("contactInstagram").value =
+      data.instagram || "";
+
+  if ($("contactFacebook"))
+    $("contactFacebook").value =
+      data.facebook || "";
+
+}
+
+
+function setupContact() {
+
+  $("contactForm")?.addEventListener(
+    "submit",
+    async (e) => {
+
+      e.preventDefault();
+
+
+      const payload = {
+
+        phone:
+          $("contactPhone")?.value.trim() || "",
+
+        whatsapp:
+          $("contactWhatsapp")?.value.trim() || "",
+
+        email:
+          $("contactEmail")?.value.trim() || "",
+
+        address:
+          $("contactAddress")?.value.trim() || "",
+
+        instagram:
+          $("contactInstagram")?.value.trim() || "",
+
+        facebook:
+          $("contactFacebook")?.value.trim() || ""
+
+      };
+
+
+      const { data: existing } =
+        await supabaseClient
+          .from("contact_information")
+          .select("id")
+          .limit(1)
+          .maybeSingle();
+
+
+      let result;
+
+
+      if (existing?.id) {
+
+        result =
+          await supabaseClient
+            .from("contact_information")
+            .update(payload)
+            .eq("id", existing.id);
+
+      } else {
+
+        result =
+          await supabaseClient
+            .from("contact_information")
+            .insert(payload);
+
+      }
+
+
+      if (result.error) {
+
+        console.error(result.error);
+
+        setMessage(
+          "contactMessage",
+          result.error.message,
+          false
+        );
+
+        return;
+
+      }
+
+
+      setMessage(
+        "contactMessage",
+        "Contact information saved successfully."
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SERVICES MANAGEMENT
+========================================================= */
+
+async function loadServices() {
+
+  const list = $("servicesList");
+
+  if (!list) return;
+
+
+  const { data, error } =
+    await supabaseClient
+      .from("services")
+      .select("*")
+      .order("sort_order", {
+        ascending: true
+      });
+
+
+  if (error) {
+
+    console.error(
+      "Services load error:",
+      error
+    );
+
+    list.innerHTML = `
+      <p style="color:red">
+        Services load error:
+        ${escapeHTML(error.message)}
+      </p>
+    `;
+
+    return;
+
+  }
+
+
+  if (!data || data.length === 0) {
+
+    list.innerHTML = `
+      <p>
+        कोई service नहीं है।
+      </p>
+    `;
+
+    return;
+
+  }
+
+
+  list.innerHTML = data.map(service => `
+
+    <div
+      class="service-admin-card"
+      data-id="${service.id}"
+    >
+
+      <div class="service-admin-image">
+
+        ${
+          service.image_url
+          ?
+          `<img
+            src="${escapeHTML(service.image_url)}"
+            alt="${escapeHTML(service.name)}"
+          >`
+          :
+          `<span>
+            ${escapeHTML(service.icon || "🧺")}
+          </span>`
+        }
+
+      </div>
+
+
+      <div class="service-admin-info">
+
+        <h3>
+          ${escapeHTML(service.name)}
+        </h3>
+
+        <p>
+          ${escapeHTML(service.description || "")}
+        </p>
+
+        <strong>
+          ₹${escapeHTML(service.price ?? 0)}
+        </strong>
+
+        <small>
+          ${
+            service.active
+            ? "● Active"
+            : "● Inactive"
+          }
+        </small>
+
+        <small>
+          Order: ${escapeHTML(service.sort_order ?? 0)}
+        </small>
+
+      </div>
+
+
+      <div class="service-admin-actions">
+
+        <button
+          type="button"
+          onclick="editService('${service.id}')"
+        >
+          ✏️ Edit
+        </button>
+
+
+        <button
+          type="button"
+          onclick="toggleService('${service.id}', ${service.active})"
+        >
+          ${
+            service.active
+            ? "⏸ Disable"
+            : "▶ Enable"
+          }
+        </button>
+
+
+        <button
+          type="button"
+          onclick="deleteService('${service.id}')"
+        >
+          🗑️ Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join("");
+
+}
+
+
+/* =========================================================
+   SERVICE FORM SETUP
+========================================================= */
+
+function setupServices() {
+
+  $("newServiceBtn")?.addEventListener(
+    "click",
+    newService
+  );
+
+
+  $("serviceForm")?.addEventListener(
+    "submit",
+    saveService
+  );
+
+
+  $("cancelServiceBtn")?.addEventListener(
+    "click",
+    closeServiceEditor
+  );
+
+
+  $("serviceUploadBtn")?.addEventListener(
+    "click",
+    async () => {
+
+      const file =
+        $("serviceImageFile")?.files?.[0];
+
+      if (!file) {
+
+       alert(
+          "पहले service image select करें।"
+        );
+
+        return;
+
+      }
+
+
+      const url =
+        await uploadImage(
+          file,
+          "services"
+        );
+
+
+      if (url) {
+
+        $("serviceImage").value = url;
+
+        showImagePreview(
+          "serviceImagePreview",
+          url
+        );
+
+      }
+
+    }
+  );
+
+}
+
+/* =========================================================
+   NEW SERVICE
+========================================================= */
+
+function newService() {
+
+  if (!$("serviceEditor")) return;
+
+
+  $("serviceEditor").hidden = false;
+
+
+  if ($("serviceEditorTitle"))
+    $("serviceEditorTitle").textContent =
+      "New Service";
+
+
+  $("serviceId").value = "";
+
+  $("serviceName").value = "";
+
+  $("serviceDescription").value = "";
+
+  $("servicePrice").value = "";
+
+  $("serviceIcon").value = "🧺";
+
+  $("serviceImage").value = "";
+
+  $("serviceActive").checked = true;
+
+  $("serviceSortOrder").value = "0";
+
+
+  showImagePreview(
+    "serviceImagePreview",
+    ""
+  );
+
+
+  $("serviceEditor").scrollIntoView({
+    behavior: "smooth"
+  });
+
+}
+
+
+/* =========================================================
+   EDIT SERVICE
+========================================================= */
+
+async function editService(id) {
+
+  const { data, error } =
+    await supabaseClient
+      .from("services")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+
+  if (error) {
+
+    alert(
+      "Service load failed: " +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  $("serviceEditor").hidden = false;
+
+
+  if ($("serviceEditorTitle"))
+    $("serviceEditorTitle").textContent =
+      "Edit Service";
+
+
+  $("serviceId").value =
+    data.id || "";
+
+  $("serviceName").value =
+    data.name || "";
+
+  $("serviceDescription").value =
+    data.description || "";
+
+  $("servicePrice").value =
+    data.price ?? "";
+
+  $("serviceIcon").value =
+    data.icon || "🧺";
+
+  $("serviceImage").value =
+    data.image_url || "";
+
+  $("serviceActive").checked =
+    data.active !== false;
+
+  $("serviceSortOrder").value =
+    data.sort_order ?? 0;
+
+
+  showImagePreview(
+    "serviceImagePreview",
+    data.image_url
+  );
+
+
+  $("serviceEditor").scrollIntoView({
+    behavior: "smooth"
+  });
+
+}
+
+
+/* =========================================================
+   SAVE SERVICE
+========================================================= */
+
+async function saveService(e) {
+
+  e.preventDefault();
+
+
+  const id =
+    $("serviceId")?.value.trim();
+
+
+  const payload = {
+
+    name:
+      $("serviceName")?.value.trim() || "",
+
+    description:
+      $("serviceDescription")?.value.trim() || "",
+
+    price:
+      Number(
+        $("servicePrice")?.value || 0
+      ),
+
+    icon:
+      $("serviceIcon")?.value.trim() ||
+      "🧺",
+
+    image_url:
+      $("serviceImage")?.value.trim() || "",
+
+    active:
+      $("serviceActive")?.checked ?? true,
+     sort_order:
+      Number(
+        $("serviceSortOrder")?.value || 0
+      )
+
+  };
+
+
+  if (!payload.name) {
+
+    setMessage(
+      "serviceMessage",
+      "Service name required.",
+      false
+    );
+
+    return;
+
+  }
+
+
+  let result;
+
+
+  if (id) {
+
+    result =
+      await supabaseClient
+        .from("services")
+        .update(payload)
+        .eq("id", id);
+
+  } else {
+
+    result =
+      await supabaseClient
+        .from("services")
+        .insert(payload);
+
+  }
+
+
+  if (result.error) {
+
+    console.error(
+      "Service save error:",
+      result.error
+    );
+
+    setMessage(
+      "serviceMessage",
+      "Service save error: " +
+      result.error.message,
+      false
+    );
+
+    return;
+
+  }
+
+
+  setMessage(
+    "serviceMessage",
+    "Service saved successfully."
+  );
+
+
+  await loadServices();
+
+
+  setTimeout(
+    closeServiceEditor,
+    500
+  );
+
+}
+
+
+/* =========================================================
+   ENABLE / DISABLE SERVICE
+========================================================= */
+
+async function toggleService(
+  id,
+  currentStatus
+) {
+
+  const { error } =
+    await supabaseClient
+      .from("services")
+      .update({
+        active: !currentStatus
+      })
+      .eq("id", id);
+
+
+  if (error) {
+
+    alert(
+      "Status update failed:\n" +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  await loadServices();
+
+}
+
+
+/* =========================================================
+   DELETE SERVICE
+========================================================= */
+
+async function deleteService(id) {
+
+  const ok =
+    confirm(
+      "क्या आप इस service को delete करना चाहते हैं?"
+    );
+
+
+  if (!ok) return;
+
+
+  const { error } =
+    await supabaseClient
+      .from("services")
+      .delete()
+      .eq("id", id);
+
+
+  if (error) {
+
+    alert(
+      "Service delete failed:\n" +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  await loadServices();
+
+}
+
+
+/* =========================================================
+   CLOSE SERVICE EDITOR
+========================================================= */
+
+function closeServiceEditor() {
+
+  if ($("serviceEditor"))
+    $("serviceEditor").hidden = true;
+
+}
+
+
+/* =========================================================
+   GLOBAL FUNCTIONS
+========================================================= */
+
+window.editArticle = editArticle;
+window.deleteArticle = deleteArticle;
+
+window.editService = editService;
+window.deleteService = deleteService;
+window.toggleService = toggleService;
+
+window.newService = newService;
+window.editFooterLink = editFooterLink;
+window.deleteFooterLink = deleteFooterLink;
+
+console.log(
+  "Basanta Content Admin JS ready."
+);
+/* =====================================================
+   FOOTER LINKS MANAGEMENT
+===================================================== */
+
+const footerLinksList =
+  document.getElementById("footerLinksList");
+
+const footerLinkEditor =
+  document.getElementById("footerLinkEditor");
+
+const footerLinkForm =
+  document.getElementById("footerLinkForm");
+
+const newFooterLinkBtn =
+  document.getElementById("newFooterLinkBtn");
+
+const closeFooterEditorBtn =
+  document.getElementById("closeFooterEditorBtn");
+
+const cancelFooterLinkBtn =
+  document.getElementById("cancelFooterLinkBtn");
+
+const footerEditorTitle =
+  document.getElementById("footerEditorTitle");
+
+const footerLinkId =
+  document.getElementById("footerLinkId");
+
+const footerLinkSection =
+  document.getElementById("footerLinkSection");
+
+const footerLinkTitle =
+  document.getElementById("footerLinkTitle");
+
+const footerLinkUrl =
+  document.getElementById("footerLinkUrl");
+
+const footerLinkSort =
+  document.getElementById("footerLinkSort");
+
+const footerLinkActive =
+  document.getElementById("footerLinkActive");
+
+const footerLinkMessage =
+  document.getElementById("footerLinkMessage");
+
+
+async function loadFooterLinks() {
+
+  if (!footerLinksList) return;
+
+  footerLinksList.innerHTML =
+    `<div class="loading">Footer links loading...</div>`;
+
+  try {
+
+    const { data, error } = await supabaseClient
+      .from("footer_links")
+      .select("*")
+      .order("section", { ascending: true })
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+
+      footerLinksList.innerHTML = `
+        <div class="loading">
+          अभी कोई footer link नहीं है।
+        </div>
+      `;
+
+      return;
+    }
+
+    footerLinksList.innerHTML = data.map(link => `
+
+      <div class="admin-item">
+
+        <div>
+
+          <strong>
+            ${escapeFooterHtml(link.title)}
+          </strong>
+
+          <small>
+            ${escapeFooterHtml(link.section)}
+            •
+            ${escapeFooterHtml(link.url)}
+          </small>
+
+        </div>
+
+        <div class="admin-item-actions">
+
+          <button
+            type="button"
+            class="edit-btn"
+            onclick="editFooterLink('${link.id}')">
+            Edit
+          </button>
+
+          <button
+            type="button"
+            class="delete-btn"
+            onclick="deleteFooterLink('${link.id}')">
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+  } catch (error) {
+
+    console.error(
+      "Footer Links Load Error:",
+      error
+    );
+
+    footerLinksList.innerHTML = `
+      <div class="loading">
+        Footer links load नहीं हो सके।
+        <br><br>
+        <small>
+          ${escapeFooterHtml(error.message)}
+        </small>
+      </div>
+    `;
+  }
+}
+
+
+function escapeFooterHtml(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+function openFooterEditor() {
+
+  if (!footerLinkEditor) return;
+
+  footerEditorTitle.textContent =
+    "New Footer Link";
+
+  footerLinkId.value = "";
+
+  footerLinkSection.value =
+    "Services";
+
+  footerLinkTitle.value = "";
+
+  footerLinkUrl.value = "";
+
+  footerLinkSort.value = "0";
+
+  footerLinkActive.checked = true;
+
+  footerLinkMessage.textContent = "";
+
+  footerLinkEditor.hidden = false;
+
+  footerLinkEditor.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
+}
+
+
+function closeFooterEditor() {
+
+  if (!footerLinkEditor) return;
+
+  footerLinkEditor.hidden = true;
+
+}
+
+
+async function editFooterLink(id) {
+
+  try {
+
+    const { data, error } = await supabaseClient
+      .from("footer_links")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    footerEditorTitle.textContent =
+      "Edit Footer Link";
+
+    footerLinkId.value =
+      data.id;
+
+    footerLinkSection.value =
+      data.section || "Company";
+
+    footerLinkTitle.value =
+      data.title || "";
+
+    footerLinkUrl.value =
+      data.url || "";
+
+    footerLinkSort.value =
+      data.sort_order ?? 0;
+
+    footerLinkActive.checked =
+      data.active !== false;
+
+    footerLinkMessage.textContent = "";
+
+    footerLinkEditor.hidden = false;
+
+    footerLinkEditor.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Footer Link Edit Error:",
+      error
+    );
+
+    alert(
+      "Footer link load नहीं हुआ: " +
+      error.message
     );
 
   }
 
+}
 
-  if (
-    error.statusCode === "400" &&
-    error.message
-  ) {
 
-    return error.message;
+async function deleteFooterLink(id) {
+
+  const confirmDelete =
+    confirm(
+      "क्या आप यह footer link delete करना चाहते हैं?"
+    );
+
+  if (!confirmDelete) return;
+
+  try {
+
+    const { error } = await supabaseClient
+      .from("footer_links")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+
+    await loadFooterLinks();
+
+  } catch (error) {
+
+    console.error(
+      "Footer Link Delete Error:",
+      error
+    );
+
+    alert(
+      "Delete नहीं हुआ: " +
+      error.message
+    );
 
   }
-
-
-  if (
-    error.message
-  ) {
-
-    return error.message;
-
-  }
-
-
-  return fallback;
 
 }
+
+
+if (newFooterLinkBtn) {
+
+  newFooterLinkBtn.addEventListener(
+    "click",
+    openFooterEditor
+  );
+
+}
+
+
+if (closeFooterEditorBtn) {
+
+  closeFooterEditorBtn.addEventListener(
+    "click",
+    closeFooterEditor
+  );
+
+}
+
+
+if (cancelFooterLinkBtn) {
+
+  cancelFooterLinkBtn.addEventListener(
+    "click",
+    closeFooterEditor
+  );
+
+}
+
+
+if (footerLinkForm) {
+
+  footerLinkForm.addEventListener(
+    "submit",
+    async function(event) {
+
+      event.preventDefault();
+
+      footerLinkMessage.textContent =
+        "Saving...";
+
+      try {
+
+        const id =
+          footerLinkId.value.trim();
+
+        const payload = {
+
+          section:
+            footerLinkSection.value.trim(),
+
+          title:
+            footerLinkTitle.value.trim(),
+
+          url:
+            footerLinkUrl.value.trim(),
+
+          active:
+            footerLinkActive.checked,
+
+          sort_order:
+            Number(
+              footerLinkSort.value || 0
+            ),
+
+          updated_at:
+            new Date().toISOString()
+
+        };
+
+
+        if (!payload.title) {
+          throw new Error(
+            "Link name डालें।"
+          );
+        }
+
+
+        if (!payload.url) {
+          throw new Error(
+            "Link URL डालें।"
+          );
+        }
+
+
+        let result;
+
+
+        if (id) {
+
+          result = await supabaseClient
+            .from("footer_links")
+            .update(payload)
+            .eq("id", id);
+
+        } else {
+
+          result = await supabaseClient
+            .from("footer_links")
+            .insert(payload);
+
+        }
+
+
+        if (result.error) {
+          throw result.error;
+        }
+
+
+        footerLinkMessage.textContent =
+          "Footer link successfully saved.";
+
+        await loadFooterLinks();
+
+        setTimeout(
+          closeFooterEditor,
+          500
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Footer Link Save Error:",
+          error
+        );
+
+        footerLinkMessage.textContent =
+          "Error: " +
+          error.message;
+
+      }
+
+    }
+  );
+
+}
+
+
+/* LOAD FOOTER LINKS */
+
+if (
+  typeof supabase !== "undefined"
+) {
+
+  loadFooterLinks();
+
+}
+       

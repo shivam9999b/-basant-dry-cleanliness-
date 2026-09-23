@@ -572,3 +572,4 @@ function showMessage(message, error = false) {
 window.addEventListener("error", function (event) {
   console.error("Website Error:", event.error || event.message);
 });
+             

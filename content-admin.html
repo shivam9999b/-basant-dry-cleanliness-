@@ -10,7 +10,9 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Website Content | Basanta Admin</title>
+  <title>
+    Website Content | Basanta Admin
+  </title>
 
   <link
     rel="stylesheet"
@@ -23,7 +25,9 @@
 <body>
 
 
-<!-- ================= HEADER ================= -->
+<!-- =====================================================
+     HEADER
+===================================================== -->
 
 <header class="content-header">
 
@@ -67,9 +71,9 @@
 <main class="content-container">
 
 
-<!-- =================================================
-     HOMEPAGE
-================================================= -->
+<!-- =====================================================
+     1. HOMEPAGE HERO
+===================================================== -->
 
 <section class="panel">
 
@@ -82,11 +86,12 @@
       </small>
 
       <h1>
-        Homepage Control
+        Hero Section
       </h1>
 
       <p>
-        Homepage का content और image यहाँ से बदलें।
+        Homepage के मुख्य heading, description,
+        button और image को manage करें।
       </p>
 
     </div>
@@ -104,18 +109,18 @@
     <input
       type="text"
       id="heroTitle"
-      placeholder="Fresh Clothes. Fresh Confidence."
+      placeholder="आपके कपड़ों की सफाई"
     >
 
 
     <label>
-      Subtitle
+      Heading Highlight
     </label>
 
     <input
       type="text"
       id="heroSubtitle"
-      placeholder="Professional Laundry & Dry Cleaning"
+      placeholder="हमारी जिम्मेदारी।"
     >
 
 
@@ -126,7 +131,7 @@
     <textarea
       id="heroDescription"
       rows="4"
-      placeholder="Homepage description"
+      placeholder="Professional Dry Cleaning..."
     ></textarea>
 
 
@@ -137,7 +142,7 @@
     <input
       type="text"
       id="heroButton"
-      placeholder="Book a Pickup"
+      placeholder="Book Pickup →"
     >
 
 
@@ -152,14 +157,13 @@
     >
 
 
-    <!-- ================= HERO IMAGE ================= -->
+    <!-- HERO IMAGE -->
 
     <div class="upload-box">
 
       <label>
         Homepage Hero Image
       </label>
-
 
       <div class="upload-row">
 
@@ -168,7 +172,6 @@
           id="heroImageFile"
           accept="image/jpeg,image/png,image/webp"
         >
-
 
         <button
           type="button"
@@ -179,7 +182,6 @@
         </button>
 
       </div>
-
 
       <small class="upload-help">
         JPG, PNG या WebP • Recommended 1200×800
@@ -198,14 +200,15 @@
       </div>
 
 
-      <!-- Uploaded URL -->
-
       <input
         type="hidden"
         id="heroImage"
       >
 
-      <p id="imageUploadMessage" class="upload-message"></p>
+      <p
+        id="imageUploadMessage"
+        class="upload-message"
+      ></p>
 
     </div>
 
@@ -214,7 +217,7 @@
       type="submit"
       class="save-btn"
     >
-      Save Homepage
+      Save Hero
     </button>
 
 
@@ -226,9 +229,294 @@
 
 
 
-<!-- =================================================
-     ARTICLES
-================================================= -->
+<!-- =====================================================
+     2. HERO STATS
+===================================================== -->
+
+<section class="panel">
+
+  <div class="panel-heading">
+
+    <div>
+
+      <small>
+        HOMEPAGE STATS
+      </small>
+
+      <h1>
+        Trust Statistics
+      </h1>
+
+      <p>
+        Homepage पर दिखने वाले Orders, Rating और Delivery
+        information को बदलें।
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <form id="statsForm">
+
+
+    <label>
+      Orders Completed
+    </label>
+
+    <input
+      type="text"
+      id="statOrders"
+      placeholder="2,000+"
+    >
+
+
+    <label>
+      Customer Rating
+    </label>
+
+    <input
+      type="text"
+      id="statRating"
+      placeholder="4.8★"
+    >
+
+
+    <label>
+      Delivery Time
+    </label>
+
+    <input
+      type="text"
+      id="statTime"
+      placeholder="24–48h"
+    >
+
+
+    <button
+      type="submit"
+      class="save-btn"
+    >
+      Save Statistics
+    </button>
+
+
+    <p id="statsMessage"></p>
+
+  </form>
+
+</section>
+
+
+
+<!-- =====================================================
+     3. SERVICES MANAGEMENT
+===================================================== -->
+
+<section class="panel">
+
+  <div class="panel-heading">
+
+    <div>
+
+      <small>
+        SERVICES
+      </small>
+
+      <h1>
+        Services Management
+      </h1>
+
+      <p>
+        Homepage पर दिखने वाली services को Add,
+        Edit, Delete और Active/Inactive करें।
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      id="newServiceBtn"
+      class="new-btn"
+    >
+      + Add Service
+    </button>
+
+  </div>
+
+
+  <div
+    id="servicesList"
+    class="articles-list"
+  >
+
+    <div class="loading">
+      Services loading...
+    </div>
+
+  </div>
+
+
+  <!-- SERVICE EDITOR -->
+
+  <section
+    id="serviceEditor"
+    class="editor-panel"
+    hidden
+  >
+
+    <div class="panel-heading">
+
+      <div>
+
+        <small>
+          SERVICE EDITOR
+        </small>
+
+        <h1 id="serviceEditorTitle">
+          Add Service
+        </h1>
+
+      </div>
+
+
+      <button
+        type="button"
+        id="closeServiceEditorBtn"
+        class="close-editor"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form id="serviceForm">
+
+
+      <input
+        type="hidden"
+        id="serviceId"
+      >
+
+
+      <label>
+        Service Name
+      </label>
+
+      <input
+        type="text"
+        id="serviceName"
+        placeholder="Dry Cleaning"
+        required
+      >
+
+
+      <label>
+        Description
+      </label>
+
+      <textarea
+        id="serviceDescription"
+        rows="3"
+        placeholder="Professional dry cleaning..."
+      ></textarea>
+
+
+      <label>
+        Price
+      </label>
+
+      <input
+        type="number"
+        id="servicePrice"
+        min="0"
+        step="0.01"
+        placeholder="50"
+      >
+
+
+      <label>
+        Icon
+      </label>
+
+      <input
+        type="text"
+        id="serviceIcon"
+        placeholder="🧥"
+      >
+
+
+      <label>
+        Image URL
+      </label>
+
+      <input
+        type="text"
+        id="serviceImage"
+        placeholder="https://..."
+      >
+
+
+      <label>
+        Sort Order
+      </label>
+
+      <input
+        type="number"
+        id="serviceSortOrder"
+        min="0"
+        value="0"
+      >
+
+
+      <label class="check-label">
+
+        <input
+          type="checkbox"
+          id="serviceActive"
+          checked
+        >
+
+        Active
+
+      </label>
+
+
+      <div class="editor-actions">
+
+        <button
+          type="submit"
+          class="save-btn"
+        >
+          Save Service
+        </button>
+
+        <button
+          type="button"
+          id="cancelServiceBtn"
+          class="cancel-btn"
+        >
+          Cancel
+        </button>
+
+      </div>
+
+
+      <p id="serviceMessage"></p>
+
+    </form>
+
+  </section>
+
+</section>
+
+
+
+<!-- =====================================================
+     4. ARTICLES MANAGEMENT
+===================================================== -->
 
 <section class="panel">
 
@@ -245,16 +533,16 @@
       </h1>
 
       <p>
-        Article add, edit और publish/unpublish करें।
+        Article Add, Edit, Delete और Publish/Unpublish करें।
       </p>
 
     </div>
 
 
     <button
+      type="button"
       id="newArticleBtn"
       class="new-btn"
-      type="button"
     >
       + New Article
     </button>
@@ -273,228 +561,589 @@
 
   </div>
 
+
+  <!-- ARTICLE EDITOR -->
+
+  <section
+    id="articleEditor"
+    class="editor-panel"
+    hidden
+  >
+
+    <div class="panel-heading">
+
+      <div>
+
+        <small>
+          ARTICLE EDITOR
+        </small>
+
+        <h1 id="editorTitle">
+          New Article
+        </h1>
+
+      </div>
+
+
+      <button
+        type="button"
+        id="closeEditorBtn"
+        class="close-editor"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form id="articleForm">
+
+
+      <input
+        type="hidden"
+        id="articleId"
+      >
+
+
+      <label>
+        Article Title
+      </label>
+
+      <input
+        type="text"
+        id="articleTitle"
+        required
+      >
+
+
+      <label>
+        Slug
+      </label>
+
+      <input
+        type="text"
+        id="articleSlug"
+      >
+
+
+      <label>
+        Category
+      </label>
+
+      <input
+        type="text"
+        id="articleCategory"
+      >
+
+
+      <label>
+        Short Description
+      </label>
+
+      <textarea
+        id="articleDescription"
+        rows="3"
+      ></textarea>
+
+
+      <label>
+        Article Image
+      </label>
+
+      <div class="upload-box">
+
+        <div class="upload-row">
+
+          <input
+            type="file"
+            id="articleImageFile"
+            accept="image/jpeg,image/png,image/webp"
+          >
+
+          <button
+            type="button"
+            id="articleUploadBtn"
+            class="upload-btn"
+          >
+            🖼️ Upload Image
+          </button>
+
+        </div>
+
+
+        <div
+          id="articleImagePreview"
+          class="image-preview"
+        >
+
+          <span>
+            No image selected
+          </span>
+
+        </div>
+
+
+        <input
+          type="hidden"
+          id="articleImage"
+        >
+
+      </div>
+
+
+      <label>
+        Article Content
+      </label>
+
+      <textarea
+        id="articleContent"
+        rows="15"
+        placeholder="Article content..."
+      ></textarea>
+
+
+      <label>
+        Author
+      </label>
+
+      <input
+        type="text"
+        id="articleAuthor"
+        value="Basanta"
+      >
+
+
+      <label class="check-label">
+
+        <input
+          type="checkbox"
+          id="articlePublished"
+          checked
+        >
+
+        Published
+
+      </label>
+
+
+      <div class="editor-actions">
+
+        <button
+          type="submit"
+          class="save-btn"
+        >
+          Save Article
+        </button>
+
+        <button
+          type="button"
+          id="cancelArticleBtn"
+          class="cancel-btn"
+        >
+          Cancel
+        </button>
+
+      </div>
+
+
+      <p id="articleMessage"></p>
+
+    </form>
+
+  </section>
+
 </section>
 
 
 
-<!-- =================================================
-     ARTICLE EDITOR
-================================================= -->
+<!-- =====================================================
+     5. PRICING MANAGEMENT
+===================================================== -->
 
-<section
-  id="articleEditor"
-  class="panel editor-panel"
-  hidden
->
-
+<section class="panel">
 
   <div class="panel-heading">
 
     <div>
 
       <small>
-        ARTICLE EDITOR
+        PRICING
       </small>
 
-      <h1 id="editorTitle">
-        New Article
+      <h1>
+        Pricing Management
       </h1>
+
+      <p>
+        Homepage की clothing prices को Add, Edit और Delete करें।
+      </p>
 
     </div>
 
 
     <button
-      id="closeEditorBtn"
-      class="close-editor"
       type="button"
+      id="newPriceBtn"
+      class="new-btn"
     >
-      ×
+      + Add Price
     </button>
 
   </div>
 
 
+  <div
+    id="pricesList"
+    class="articles-list"
+  >
 
-  <form id="articleForm">
+    <div class="loading">
+      Prices loading...
+    </div>
 
-
-    <input
-      type="hidden"
-      id="articleId"
-    >
-
-
-    <label>
-      Article Title
-    </label>
-
-    <input
-      type="text"
-      id="articleTitle"
-      required
-      placeholder="Article title"
-    >
+  </div>
 
 
-    <label>
-      Slug
-    </label>
+  <!-- PRICE EDITOR -->
 
-    <input
-      type="text"
-      id="articleSlug"
-      placeholder="my-article"
-    >
+  <section
+    id="priceEditor"
+    class="editor-panel"
+    hidden
+  >
 
+    <div class="panel-heading">
 
-    <label>
-      Category
-    </label>
+      <div>
 
-    <input
-      type="text"
-      id="articleCategory"
-      placeholder="Dry Cleaning"
-    >
+        <small>
+          PRICE EDITOR
+        </small>
 
+        <h1 id="priceEditorTitle">
+          Add Price
+        </h1>
 
-    <label>
-      Short Description
-    </label>
-
-    <textarea
-      id="articleDescription"
-      rows="3"
-      placeholder="Short article description"
-    ></textarea>
+      </div>
 
 
+      <button
+        type="button"
+        id="closePriceEditorBtn"
+        class="close-editor"
+      >
+        ×
+      </button>
 
-    <!-- ================= ARTICLE IMAGE ================= -->
+    </div>
 
-    <div class="upload-box">
+
+    <form id="priceForm">
+
+
+      <input
+        type="hidden"
+        id="priceId"
+      >
+
 
       <label>
-        Article Image
+        Clothing Name
+      </label>
+
+      <input
+        type="text"
+        id="priceName"
+        placeholder="Shirt"
+        required
+      >
+
+
+      <label>
+        Description
+      </label>
+
+      <input
+        type="text"
+        id="priceDescription"
+        placeholder="Press / Iron"
+      >
+
+
+      <label>
+        Price
+      </label>
+
+      <input
+        type="number"
+        id="priceAmount"
+        min="0"
+        step="0.01"
+        placeholder="10"
+        required
+      >
+
+
+      <label>
+        Icon
+      </label>
+
+      <input
+        type="text"
+        id="priceIcon"
+        placeholder="👔"
+      >
+
+
+      <label>
+        Sort Order
+      </label>
+
+      <input
+        type="number"
+        id="priceSortOrder"
+        min="0"
+        value="0"
+      >
+
+
+      <label class="check-label">
+
+        <input
+          type="checkbox"
+          id="priceActive"
+          checked
+        >
+
+        Active
+
       </label>
 
 
-      <div class="upload-row">
+      <div class="editor-actions">
 
-        <input
-          type="file"
-          id="articleImageFile"
-          accept="image/jpeg,image/png,image/webp"
+        <button
+          type="submit"
+          class="save-btn"
         >
-
+          Save Price
+        </button>
 
         <button
           type="button"
-          id="articleUploadBtn"
-          class="upload-btn"
+          id="cancelPriceBtn"
+          class="cancel-btn"
         >
-          🖼️ Upload Image
+          Cancel
         </button>
 
       </div>
 
 
-      <small class="upload-help">
-        JPG, PNG या WebP • Recommended 1200×675
-      </small>
+      <p id="priceMessage"></p>
 
+    </form>
 
-      <div
-        id="articleImagePreview"
-        class="image-preview"
-      >
-
-        <span>
-          No image selected
-        </span>
-
-      </div>
-
-
-      <input
-        type="hidden"
-        id="articleImage"
-      >
-
-    </div>
-
-
-
-    <!-- ================= CONTENT ================= -->
-
-    <label>
-      Article Content
-    </label>
-
-    <textarea
-      id="articleContent"
-      rows="15"
-      placeholder="Article content यहाँ लिखें..."
-    ></textarea>
-
-
-    <label>
-      Author
-    </label>
-
-    <input
-      type="text"
-      id="articleAuthor"
-      value="Basanta"
-    >
-
-
-    <label class="check-label">
-
-      <input
-        type="checkbox"
-        id="articlePublished"
-        checked
-      >
-
-      Published
-
-    </label>
-
-
-
-    <div class="editor-actions">
-
-      <button
-        type="submit"
-        class="save-btn"
-      >
-        Save Article
-      </button>
-
-
-      <button
-        type="button"
-        id="cancelArticleBtn"
-        class="cancel-btn"
-      >
-        Cancel
-      </button>
-
-    </div>
-
-
-    <p id="articleMessage"></p>
-
-  </form>
+  </section>
 
 </section>
 
 
 
-<!-- =================================================
-     CONTACT
-================================================= -->
+<!-- =====================================================
+     6. HOW IT WORKS
+===================================================== -->
+
+<section class="panel">
+
+  <div class="panel-heading">
+
+    <div>
+
+      <small>
+        HOW IT WORKS
+      </small>
+
+      <h1>
+        Process Management
+      </h1>
+
+      <p>
+        Homepage के तीन steps को manage करें।
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      id="newStepBtn"
+      class="new-btn"
+    >
+      + Add Step
+    </button>
+
+  </div>
+
+
+  <div
+    id="stepsList"
+    class="articles-list"
+  >
+
+    <div class="loading">
+      Steps loading...
+    </div>
+
+  </div>
+
+
+  <!-- STEP EDITOR -->
+
+  <section
+    id="stepEditor"
+    class="editor-panel"
+    hidden
+  >
+
+    <div class="panel-heading">
+
+      <div>
+
+        <small>
+          STEP EDITOR
+        </small>
+
+        <h1 id="stepEditorTitle">
+          Add Step
+        </h1>
+
+      </div>
+
+
+      <button
+        type="button"
+        id="closeStepEditorBtn"
+        class="close-editor"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form id="stepForm">
+
+
+      <input
+        type="hidden"
+        id="stepId"
+      >
+
+
+      <label>
+        Step Number
+      </label>
+
+      <input
+        type="text"
+        id="stepNumber"
+        placeholder="01"
+      >
+
+
+      <label>
+        Icon
+      </label>
+
+      <input
+        type="text"
+        id="stepIcon"
+        placeholder="📦"
+      >
+
+
+      <label>
+        Title
+      </label>
+
+      <input
+        type="text"
+        id="stepTitle"
+        placeholder="Book Pickup"
+        required
+      >
+
+
+      <label>
+        Description
+      </label>
+
+      <textarea
+        id="stepDescription"
+        rows="3"
+        placeholder="अपने घर से कपड़े pickup करवाएं..."
+      ></textarea>
+
+
+      <label>
+        Sort Order
+      </label>
+
+      <input
+        type="number"
+        id="stepSortOrder"
+        min="0"
+        value="0"
+      >
+
+
+      <label class="check-label">
+
+        <input
+          type="checkbox"
+          id="stepActive"
+          checked
+        >
+
+        Active
+
+      </label>
+
+
+      <div class="editor-actions">
+
+        <button
+          type="submit"
+          class="save-btn"
+        >
+          Save Step
+        </button>
+
+        <button
+          type="button"
+          id="cancelStepBtn"
+          class="cancel-btn"
+        >
+          Cancel
+        </button>
+
+      </div>
+
+
+      <p id="stepMessage"></p>
+
+    </form>
+
+  </section>
+
+</section>
+
+
+
+<!-- =====================================================
+     7. CONTACT INFORMATION
+===================================================== -->
 
 <section class="panel">
 
@@ -510,10 +1159,13 @@
         Contact Information
       </h1>
 
+      <p>
+        Homepage पर दिखाई देने वाली contact details manage करें।
+      </p>
+
     </div>
 
   </div>
-
 
 
   <form id="contactForm">
@@ -600,18 +1252,225 @@
 </section>
 
 
+
+<!-- =====================================================
+     8. FOOTER LINKS MANAGEMENT
+===================================================== -->
+
+<section
+  class="panel"
+  id="footerLinksManagement"
+>
+
+  <div class="panel-heading">
+
+    <div>
+
+      <small>
+        FOOTER LINKS
+      </small>
+
+      <h1>
+        Footer Links Management
+      </h1>
+
+      <p>
+        Footer के Services, Company और Customer links
+        यहाँ से Add, Edit और Delete करें।
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      id="newFooterLinkBtn"
+      class="new-btn"
+    >
+      + Add Link
+    </button>
+
+  </div>
+
+
+  <div
+    id="footerLinksList"
+    class="articles-list"
+  >
+
+    <div class="loading">
+      Footer links loading...
+    </div>
+
+  </div>
+
+
+  <!-- FOOTER LINK EDITOR -->
+
+  <section
+    id="footerLinkEditor"
+    class="editor-panel"
+    hidden
+  >
+
+    <div class="panel-heading">
+
+      <div>
+
+        <small>
+          FOOTER LINK EDITOR
+        </small>
+
+        <h1 id="footerLinkEditorTitle">
+          Add Footer Link
+        </h1>
+
+      </div>
+
+
+      <button
+        type="button"
+        id="closeFooterLinkEditorBtn"
+        class="close-editor"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form id="footerLinkForm">
+
+
+      <input
+        type="hidden"
+        id="footerLinkId"
+      >
+
+
+      <label>
+        Footer Section
+      </label>
+
+      <select
+        id="footerLinkSection"
+        required
+      >
+
+        <option value="">
+          Select Section
+        </option>
+
+        <option value="Services">
+          Services
+        </option>
+
+        <option value="Company">
+          Company
+        </option>
+
+        <option value="Customer">
+          Customer
+        </option>
+
+      </select>
+
+
+      <label>
+        Link Name
+      </label>
+
+      <input
+        type="text"
+        id="footerLinkName"
+        placeholder="Dry Cleaning"
+        required
+      >
+
+
+      <label>
+        Link URL
+      </label>
+
+      <input
+        type="text"
+        id="footerLinkUrl"
+        placeholder="#services"
+        required
+      >
+
+
+      <label>
+        Sort Order
+      </label>
+
+      <input
+        type="number"
+        id="footerLinkSortOrder"
+        min="0"
+        value="0"
+      >
+
+
+      <label class="check-label">
+
+        <input
+          type="checkbox"
+          id="footerLinkActive"
+          checked
+        >
+
+        Active
+
+      </label>
+
+
+      <div class="editor-actions">
+
+        <button
+          type="submit"
+          class="save-btn"
+        >
+          Save Link
+        </button>
+
+
+        <button
+          type="button"
+          id="cancelFooterLinkBtn"
+          class="cancel-btn"
+        >
+          Cancel
+        </button>
+
+      </div>
+
+      <p id="footerLinkMessage"></p>
+
+    </form>
+
+  </section>
+
+</section>
+
+
+
 </main>
 
 
 
-<!-- =================================================
+<!-- =====================================================
      SUPABASE
-================================================= -->
+===================================================== -->
 
 <script
   src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
 ></script>
 
+
+<!-- =====================================================
+     CONTENT ADMIN JAVASCRIPT
+===================================================== -->
 
 <script
   src="content-admin.js"
@@ -620,4 +1479,4 @@
 
 </body>
 
-</html>
+  </html>

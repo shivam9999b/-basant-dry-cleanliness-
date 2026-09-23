@@ -8,99 +8,40 @@
    SUPABASE CONFIG
 ===================================================== */
 
-const SUPABASE_URL =
-  "https://ubsyhqkefhtskxjpjzbf.supabase.co";
+const SUPABASE_URL = "https://ubsyhqkefhtskxjpjzbf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVic3locWtlZmh0c2t4anBqemJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4Mzk4NjQsImV4cCI6MjEwNTQxNTg2NH0.00-JsYNjdmb7OV51Tly1W8A9grQ9GR9E66E3Yyas-j8";
 
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVic3locWtlZmh0c2t4anBqemJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4Mzk4NjQsImV4cCI6MjEwNTQxNTg2NH0.00-JsYNjdmb7OV51Tly1W8A9grQ9GR9E66E3Yyas-j8";
-
-
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
 
 /* =====================================================
    DOM
 ===================================================== */
 
-const ordersContainer =
-  document.getElementById(
-    "ordersContainer"
-  );
+const ordersContainer = document.getElementById("ordersContainer");
+const refreshBtn = document.getElementById("refreshBtn");
+const statusFilter = document.getElementById("statusFilter");
 
-const refreshBtn =
-  document.getElementById(
-    "refreshBtn"
-  );
-
-const statusFilter =
-  document.getElementById(
-    "statusFilter"
-  );
-
-
-const totalOrders =
-  document.getElementById(
-    "totalOrders"
-  );
-
-const pendingOrders =
-  document.getElementById(
-    "pendingOrders"
-  );
-
-const pickupOrders =
-  document.getElementById(
-    "pickupOrders"
-  );
-
-const deliveredOrders =
-  document.getElementById(
-    "deliveredOrders"
-  );
+const totalOrders = document.getElementById("totalOrders");
+const pendingOrders = document.getElementById("pendingOrders");
+const pickupOrders = document.getElementById("pickupOrders");
+const deliveredOrders = document.getElementById("deliveredOrders");
 
 
 /* =====================================================
    MODAL
 ===================================================== */
 
-const orderModal =
-  document.getElementById(
-    "orderModal"
-  );
-
-const closeModal =
-  document.getElementById(
-    "closeModal"
-  );
-
-const modalOrderId =
-  document.getElementById(
-    "modalOrderId"
-  );
-
-const modalDetails =
-  document.getElementById(
-    "modalDetails"
-  );
-
-const statusSelect =
-  document.getElementById(
-    "statusSelect"
-  );
-
-const updateStatusBtn =
-  document.getElementById(
-    "updateStatusBtn"
-  );
-
-const updateMessage =
-  document.getElementById(
-    "updateMessage"
-  );
+const orderModal = document.getElementById("orderModal");
+const closeModal = document.getElementById("closeModal");
+const modalOrderId = document.getElementById("modalOrderId");
+const modalDetails = document.getElementById("modalDetails");
+const statusSelect = document.getElementById("statusSelect");
+const updateStatusBtn = document.getElementById("updateStatusBtn");
+const updateMessage = document.getElementById("updateMessage");
 
 
 /* =====================================================
@@ -108,7 +49,6 @@ const updateMessage =
 ===================================================== */
 
 let allOrders = [];
-
 let selectedOrder = null;
 
 
@@ -117,47 +57,14 @@ let selectedOrder = null;
 ===================================================== */
 
 const STATUS_LIST = [
-
-  {
-    value: "pending",
-    label: "Pending"
-  },
-
-  {
-    value: "confirmed",
-    label: "Confirmed"
-  },
-
-  {
-    value: "picked_up",
-    label: "Picked Up"
-  },
-
-  {
-    value: "cleaning",
-    label: "Cleaning"
-  },
-
-  {
-    value: "ready",
-    label: "Ready"
-  },
-
-  {
-    value: "out_for_delivery",
-    label: "Out for Delivery"
-  },
-
-  {
-    value: "delivered",
-    label: "Delivered"
-  },
-
-  {
-    value: "cancelled",
-    label: "Cancelled"
-  }
-
+  { value: "pending", label: "Pending" },
+  { value: "confirmed", label: "Confirmed" },
+  { value: "picked_up", label: "Picked Up" },
+  { value: "cleaning", label: "Cleaning" },
+  { value: "ready", label: "Ready" },
+  { value: "out_for_delivery", label: "Out for Delivery" },
+  { value: "delivered", label: "Delivered" },
+  { value: "cancelled", label: "Cancelled" }
 ];
 
 
@@ -165,16 +72,10 @@ const STATUS_LIST = [
    INIT
 ===================================================== */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    loadOrders();
-
-    setupEvents();
-
-  }
-);
+document.addEventListener("DOMContentLoaded", () => {
+  loadOrders();
+  setupEvents();
+});
 
 
 /* =====================================================
@@ -182,95 +83,34 @@ document.addEventListener(
 ===================================================== */
 
 function setupEvents() {
-
-
-  /* REFRESH */
-
   if (refreshBtn) {
-
-    refreshBtn.addEventListener(
-      "click",
-      loadOrders
-    );
-
+    refreshBtn.addEventListener("click", loadOrders);
   }
-
-
-  /* FILTER */
 
   if (statusFilter) {
-
-    statusFilter.addEventListener(
-      "change",
-      renderFilteredOrders
-    );
-
+    statusFilter.addEventListener("change", renderFilteredOrders);
   }
-
-
-  /* CLOSE MODAL */
 
   if (closeModal) {
-
-    closeModal.addEventListener(
-      "click",
-      closeOrderModal
-    );
-
+    closeModal.addEventListener("click", closeOrderModal);
   }
-
-
-  /* MODAL OVERLAY */
 
   if (orderModal) {
-
-    const overlay =
-      orderModal.querySelector(
-        ".modal-overlay"
-      );
-
-
+    const overlay = orderModal.querySelector(".modal-overlay");
     if (overlay) {
-
-      overlay.addEventListener(
-        "click",
-        closeOrderModal
-      );
-
+      overlay.addEventListener("click", closeOrderModal);
     }
-
   }
 
-
-  /* ESC */
-
-  document.addEventListener(
-    "keydown",
-    event => {
-
-      if (
-        event.key === "Escape"
-      ) {
-
-        closeOrderModal();
-
-      }
-
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeOrderModal();
     }
-  );
-
-
-  /* UPDATE STATUS */
+  });
 
   if (updateStatusBtn) {
-
-    updateStatusBtn.addEventListener(
-      "click",
-      updateOrderStatus
-    );
-
+    updateStatusBtn.addEventListener("click", updateOrderStatus);
   }
-
 }
 
 
@@ -279,109 +119,43 @@ function setupEvents() {
 ===================================================== */
 
 async function loadOrders() {
-
   if (refreshBtn) {
-
-    refreshBtn.disabled =
-      true;
-
-    refreshBtn.textContent =
-      "Loading...";
-
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = "Loading...";
   }
 
-
   if (ordersContainer) {
-
     ordersContainer.innerHTML = `
-
       <div class="loading">
         Orders loading...
       </div>
-
     `;
-
   }
-
 
   try {
-
-    const {
-      data,
-      error
-    } = await supabaseClient
-
+    const { data, error } = await supabaseClient
       .from("orders")
-
       .select("*")
-
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      );
-
+      .order("created_at", { ascending: false });
 
     if (error) {
-
-      console.error(
-        "LOAD ORDERS ERROR:",
-        error
-      );
-
-
-      showOrdersError(
-        error.message
-      );
-
+      console.error("LOAD ORDERS ERROR:", error);
+      showOrdersError(error.message);
       return;
-
     }
 
-
-    allOrders =
-      data || [];
-
-
-    updateStats(
-      allOrders
-    );
-
-
+    allOrders = data || [];
+    updateStats(allOrders);
     renderFilteredOrders();
-
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "LOAD ORDERS EXCEPTION:",
-      error
-    );
-
-
-    showOrdersError(
-      "Orders load नहीं हो सके।"
-    );
-
-  }
-
-  finally {
-
+  } catch (error) {
+    console.error("LOAD ORDERS EXCEPTION:", error);
+    showOrdersError("Orders load नहीं हो सके।");
+  } finally {
     if (refreshBtn) {
-
-      refreshBtn.disabled =
-        false;
-
-      refreshBtn.textContent =
-        "↻ Refresh";
-
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = "↻ Refresh";
     }
-
   }
-
 }
 
 
@@ -390,55 +164,20 @@ async function loadOrders() {
 ===================================================== */
 
 function renderFilteredOrders() {
+  let orders = [...allOrders];
+  const filter = statusFilter ? statusFilter.value : "all";
 
-  let orders =
-    [...allOrders];
-
-
-  const filter =
-    statusFilter
-      ? statusFilter.value
-      : "all";
-
-
-  if (
-    filter &&
-    filter !== "all"
-  ) {
-
-    if (
-      filter === "pickup"
-    ) {
-
-      orders =
-        orders.filter(
-          order =>
-            order.status ===
-              "picked_up" ||
-            order.status ===
-              "confirmed"
-        );
-
+  if (filter && filter !== "all") {
+    if (filter === "pickup") {
+      orders = orders.filter(
+        (order) => order.status === "picked_up" || order.status === "confirmed"
+      );
+    } else {
+      orders = orders.filter((order) => order.status === filter);
     }
-
-    else {
-
-      orders =
-        orders.filter(
-          order =>
-            order.status ===
-            filter
-        );
-
-    }
-
   }
 
-
-  renderOrders(
-    orders
-  );
-
+  renderOrders(orders);
 }
 
 
@@ -446,180 +185,76 @@ function renderFilteredOrders() {
    RENDER ORDERS
 ===================================================== */
 
-function renderOrders(
-  orders
-) {
-
+function renderOrders(orders) {
   if (!ordersContainer) return;
 
-
   if (!orders.length) {
-
     ordersContainer.innerHTML = `
-
       <div class="loading">
         कोई order नहीं मिला।
       </div>
-
     `;
-
     return;
-
   }
-
 
   ordersContainer.innerHTML = "";
 
+  orders.forEach((order) => {
+    const card = document.createElement("div");
+    card.className = "admin-order-card";
 
-  orders.forEach(
-    order => {
-
-      const card =
-        document.createElement(
-          "div"
-        );
-
-
-      card.className =
-        "admin-order-card";
-
-
-      card.innerHTML = `
-
-        <div class="order-card-top">
-
-          <div>
-
-            <span class="order-label">
-              ORDER ID
-            </span>
-
-            <h3>
-              ${escapeHTML(
-                order.order_number ||
-                "-"
-              )}
-            </h3>
-
-          </div>
-
-          <span
-            class="order-status ${getStatusClass(
-              order.status
-            )}"
-          >
-            ${escapeHTML(
-              getStatusLabel(
-                order.status
-              )
-            )}
+    card.innerHTML = `
+      <div class="order-card-top">
+        <div>
+          <span class="order-label">
+            ORDER ID
           </span>
+          <h3>
+            ${escapeHTML(order.order_number || "-")}
+          </h3>
+        </div>
+        <span class="order-status ${getStatusClass(order.status)}">
+          ${escapeHTML(getStatusLabel(order.status))}
+        </span>
+      </div>
 
+      <div class="order-card-info">
+        <div>
+          <small>Customer</small>
+          <strong>${escapeHTML(order.customer_name || "-")}</strong>
         </div>
 
-
-        <div class="order-card-info">
-
-          <div>
-
-            <small>
-              Customer
-            </small>
-
-            <strong>
-              ${escapeHTML(
-                order.customer_name ||
-                "-"
-              )}
-            </strong>
-
-          </div>
-
-
-          <div>
-
-            <small>
-              Phone
-            </small>
-
-            <strong>
-              ${escapeHTML(
-                order.phone ||
-                "-"
-              )}
-            </strong>
-
-          </div>
-
-
-          <div>
-
-            <small>
-              Pickup
-            </small>
-
-            <strong>
-              ${escapeHTML(
-                order.pickup_date ||
-                "-"
-              )}
-            </strong>
-
-          </div>
-
-
-          <div>
-
-            <small>
-              Time
-            </small>
-
-            <strong>
-              ${escapeHTML(
-                order.pickup_time ||
-                "-"
-              )}
-            </strong>
-
-          </div>
-
+        <div>
+          <small>Phone</small>
+          <strong>${escapeHTML(order.phone || order.customer_phone || "-")}</strong>
         </div>
 
-
-        <div class="order-card-bottom">
-
-          <span>
-            ${escapeHTML(
-              order.service_name ||
-              "Dry Cleaning"
-            )}
-          </span>
-
-
-          <button
-            class="manage-order-btn"
-            data-id="${escapeHTML(
-              order.id
-            )}"
-          >
-            Manage Order
-          </button>
-
+        <div>
+          <small>Pickup</small>
+          <strong>${escapeHTML(order.pickup_date || "-")}</strong>
         </div>
 
-      `;
+        <div>
+          <small>Time</small>
+          <strong>${escapeHTML(order.pickup_time || "-")}</strong>
+        </div>
+      </div>
 
+      <div class="order-card-bottom">
+        <span>
+          ${escapeHTML(order.service_name || "Dry Cleaning")}
+        </span>
 
-      ordersContainer.appendChild(
-        card
-      );
+        <button class="manage-order-btn" data-id="${escapeHTML(order.id)}">
+          Manage Order
+        </button>
+      </div>
+    `;
 
-    }
-  );
-
+    ordersContainer.appendChild(card);
+  });
 
   attachManageButtons();
-
 }
 
 
@@ -628,30 +263,13 @@ function renderOrders(
 ===================================================== */
 
 function attachManageButtons() {
+  const buttons = document.querySelectorAll(".manage-order-btn");
 
-  const buttons =
-    document.querySelectorAll(
-      ".manage-order-btn"
-    );
-
-
-  buttons.forEach(
-    button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          openOrderModal(
-            button.dataset.id
-          );
-
-        }
-      );
-
-    }
-  );
-
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      openOrderModal(button.dataset.id);
+    });
+  });
 }
 
 
@@ -659,168 +277,74 @@ function attachManageButtons() {
    OPEN MODAL
 ===================================================== */
 
-function openOrderModal(
-  orderId
-) {
-
-  selectedOrder =
-    allOrders.find(
-      order =>
-        String(order.id) ===
-        String(orderId)
-    );
-
+function openOrderModal(orderId) {
+  selectedOrder = allOrders.find(
+    (order) => String(order.id) === String(orderId)
+  );
 
   if (!selectedOrder) {
-
-    alert(
-      "Order नहीं मिला।"
-    );
-
+    alert("Order नहीं मिला।");
     return;
-
   }
-
 
   if (modalOrderId) {
-
-    modalOrderId.textContent =
-      selectedOrder.order_number ||
-      "Order";
-
+    modalOrderId.textContent = selectedOrder.order_number || "Order";
   }
-
 
   if (statusSelect) {
-
-    statusSelect.value =
-      normalizeStatus(
-        selectedOrder.status
-      );
-
+    statusSelect.value = normalizeStatus(selectedOrder.status);
   }
-
 
   if (modalDetails) {
-
     modalDetails.innerHTML = `
-
       <div class="detail-row">
-
-        <span>
-          Customer
-        </span>
-
-        <strong>
-          ${escapeHTML(
-            selectedOrder.customer_name ||
-            "-"
-          )}
-        </strong>
-
+        <span>Customer</span>
+        <strong>${escapeHTML(selectedOrder.customer_name || "-")}</strong>
       </div>
 
-
       <div class="detail-row">
-
-        <span>
-          Phone
-        </span>
-
-        <strong>
-          ${escapeHTML(
-            selectedOrder.phone ||
-            "-"
-          )}
-        </strong>
-
+        <span>Phone</span>
+        <strong>${escapeHTML(selectedOrder.phone || selectedOrder.customer_phone || "-")}</strong>
       </div>
 
-
       <div class="detail-row">
-
-        <span>
-          Address
-        </span>
-
-        <strong>
-          ${escapeHTML(
-            selectedOrder.address ||
-            "-"
-          )}
-        </strong>
-
+        <span>Address</span>
+        <strong>${escapeHTML(selectedOrder.address || selectedOrder.customer_address || "-")}</strong>
       </div>
 
-
       <div class="detail-row">
-
-        <span>
-          Pickup Date
-        </span>
-
-        <strong>
-          ${escapeHTML(
-            selectedOrder.pickup_date ||
-            "-"
-          )}
-        </strong>
-
+        <span>Pickup Date</span>
+        <strong>${escapeHTML(selectedOrder.pickup_date || "-")}</strong>
       </div>
 
-
       <div class="detail-row">
-
-        <span>
-          Pickup Time
-        </span>
-
-        <strong>
-          ${escapeHTML(
-            selectedOrder.pickup_time ||
-            "-"
-          )}
-        </strong>
-
+        <span>Pickup Time</span>
+        <strong>${escapeHTML(selectedOrder.pickup_time || "-")}</strong>
       </div>
 
-
       <div class="detail-row">
-
-        <span>
-          Service
-        </span>
-
-        <strong>
-          ${escapeHTML(
-            selectedOrder.service_name ||
-            "Dry Cleaning"
-          )}
-        </strong>
-
+        <span>Service</span>
+        <strong>${escapeHTML(selectedOrder.service_name || "Dry Cleaning")}</strong>
       </div>
-
     `;
-
   }
 
+  // UPDATED: Cloth Description text set karna
+  const clothTextElem = document.getElementById("clothDescriptionText");
+  if (clothTextElem) {
+    clothTextElem.innerText =
+      selectedOrder.cloth_description ||
+      selectedOrder.cloth_details ||
+      "No cloth description provided";
+  }
 
   if (updateMessage) {
-
-    updateMessage.textContent =
-      "";
-
+    updateMessage.textContent = "";
   }
-
 
   if (orderModal) {
-
-    orderModal.classList.add(
-      "show"
-    );
-
+    orderModal.classList.add("show");
   }
-
 }
 
 
@@ -829,18 +353,10 @@ function openOrderModal(
 ===================================================== */
 
 function closeOrderModal() {
-
   if (!orderModal) return;
 
-
-  orderModal.classList.remove(
-    "show"
-  );
-
-
-  selectedOrder =
-    null;
-
+  orderModal.classList.remove("show");
+  selectedOrder = null;
 }
 
 
@@ -849,233 +365,80 @@ function closeOrderModal() {
 ===================================================== */
 
 async function updateOrderStatus() {
+  if (!selectedOrder) return;
 
-  if (!selectedOrder) {
+  const newStatus = normalizeStatus(statusSelect.value);
+  if (!newStatus) return;
 
-    return;
+  const oldText = updateStatusBtn.textContent;
 
-  }
-
-
-  const newStatus =
-    normalizeStatus(
-      statusSelect.value
-    );
-
-
-  if (!newStatus) {
-
-    return;
-
-  }
-
-
-  const oldText =
-    updateStatusBtn.textContent;
-
-
-  updateStatusBtn.disabled =
-    true;
-
-  updateStatusBtn.textContent =
-    "Updating...";
-
+  updateStatusBtn.disabled = true;
+  updateStatusBtn.textContent = "Updating...";
 
   if (updateMessage) {
-
-    updateMessage.textContent =
-      "Status save हो रहा है...";
-
-    updateMessage.style.color =
-      "#176b52";
-
+    updateMessage.textContent = "Status save हो रहा है...";
+    updateMessage.style.color = "#176b52";
   }
 
-
   try {
-
-    /*
-      IMPORTANT:
-      केवल status update होगा।
-      order_number को touch नहीं करेंगे।
-    */
-
-    const {
-      data,
-      error
-    } = await supabaseClient
-
+    const { data, error } = await supabaseClient
       .from("orders")
-
       .update({
-
-        status:
-          newStatus,
-
-        updated_at:
-          new Date().toISOString()
-
+        status: newStatus,
+        updated_at: new Date().toISOString()
       })
-
-      .eq(
-        "id",
-        selectedOrder.id
-      )
-
+      .eq("id", selectedOrder.id)
       .select("*");
 
-
-    /* ERROR */
-
     if (error) {
-
-      console.error(
-        "UPDATE STATUS ERROR:",
-        error
-      );
-
-
+      console.error("UPDATE STATUS ERROR:", error);
       if (updateMessage) {
-
-        updateMessage.textContent =
-          "Status update नहीं हुआ: " +
-          error.message;
-
-        updateMessage.style.color =
-          "#c0392b";
-
+        updateMessage.textContent = "Status update नहीं हुआ: " + error.message;
+        updateMessage.style.color = "#c0392b";
       }
-
-
       return;
-
     }
 
-
-    /* CHECK */
-
-    if (
-      !data ||
-      data.length === 0
-    ) {
-
+    if (!data || data.length === 0) {
       if (updateMessage) {
-
-        updateMessage.textContent =
-          "Update नहीं हुआ। Supabase RLS policy check करें।";
-
-        updateMessage.style.color =
-          "#c0392b";
-
+        updateMessage.textContent = "Update नहीं हुआ। Supabase RLS policy check करें।";
+        updateMessage.style.color = "#c0392b";
       }
-
-
       return;
-
     }
 
-
-    /* SUCCESS */
-
-    console.log(
-      "STATUS UPDATED:",
-      data[0]
-    );
-
+    console.log("STATUS UPDATED:", data[0]);
 
     if (updateMessage) {
-
-      updateMessage.textContent =
-        "✓ Status successfully updated";
-
-      updateMessage.style.color =
-        "#176b52";
-
+      updateMessage.textContent = "✓ Status successfully updated";
+      updateMessage.style.color = "#176b52";
     }
 
-
-    /*
-      Local object भी update करें।
-    */
-
-    selectedOrder.status =
-      data[0].status;
-
-
-    selectedOrder.updated_at =
-      data[0].updated_at;
-
-
-    /*
-      फिर database से fresh data load।
-      इसलिए refresh/back के बाद भी
-      नया status रहेगा।
-    */
+    selectedOrder.status = data[0].status;
+    selectedOrder.updated_at = data[0].updated_at;
 
     await loadOrders();
 
-
-    /*
-      Modal में updated value रखें।
-    */
-
-    const updatedOrder =
-      allOrders.find(
-        order =>
-          String(order.id) ===
-          String(selectedOrder.id)
-      );
-
-
-    if (updatedOrder) {
-
-      selectedOrder =
-        updatedOrder;
-
-      if (statusSelect) {
-
-        statusSelect.value =
-          normalizeStatus(
-            updatedOrder.status
-          );
-
-      }
-
-    }
-
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "UPDATE STATUS EXCEPTION:",
-      error
+    const updatedOrder = allOrders.find(
+      (order) => String(order.id) === String(selectedOrder.id)
     );
 
-
-    if (updateMessage) {
-
-      updateMessage.textContent =
-        "Technical error हुआ।";
-
-      updateMessage.style.color =
-        "#c0392b";
-
+    if (updatedOrder) {
+      selectedOrder = updatedOrder;
+      if (statusSelect) {
+        statusSelect.value = normalizeStatus(updatedOrder.status);
+      }
     }
-
+  } catch (error) {
+    console.error("UPDATE STATUS EXCEPTION:", error);
+    if (updateMessage) {
+      updateMessage.textContent = "Technical error हुआ।";
+      updateMessage.style.color = "#c0392b";
+    }
+  } finally {
+    updateStatusBtn.disabled = false;
+    updateStatusBtn.textContent = oldText;
   }
-
-  finally {
-
-    updateStatusBtn.disabled =
-      false;
-
-    updateStatusBtn.textContent =
-      oldText;
-
-  }
-
 }
 
 
@@ -1083,85 +446,26 @@ async function updateOrderStatus() {
    DASHBOARD STATS
 ===================================================== */
 
-function updateStats(
-  orders
-) {
+function updateStats(orders) {
+  const total = orders.length;
 
-  const total =
-    orders.length;
+  const pending = orders.filter(
+    (order) => normalizeStatus(order.status) === "pending"
+  ).length;
 
+  const pickup = orders.filter((order) => {
+    const status = normalizeStatus(order.status);
+    return status === "confirmed" || status === "picked_up";
+  }).length;
 
-  const pending =
-    orders.filter(
-      order =>
-        normalizeStatus(
-          order.status
-        ) ===
-        "pending"
-    ).length;
+  const delivered = orders.filter(
+    (order) => normalizeStatus(order.status) === "delivered"
+  ).length;
 
-
-  const pickup =
-    orders.filter(
-      order => {
-
-        const status =
-          normalizeStatus(
-            order.status
-          );
-
-        return (
-          status ===
-            "confirmed" ||
-          status ===
-            "picked_up"
-        );
-
-      }
-    ).length;
-
-
-  const delivered =
-    orders.filter(
-      order =>
-        normalizeStatus(
-          order.status
-        ) ===
-        "delivered"
-    ).length;
-
-
-  if (totalOrders) {
-
-    totalOrders.textContent =
-      total;
-
-  }
-
-
-  if (pendingOrders) {
-
-    pendingOrders.textContent =
-      pending;
-
-  }
-
-
-  if (pickupOrders) {
-
-    pickupOrders.textContent =
-      pickup;
-
-  }
-
-
-  if (deliveredOrders) {
-
-    deliveredOrders.textContent =
-      delivered;
-
-  }
-
+  if (totalOrders) totalOrders.textContent = total;
+  if (pendingOrders) pendingOrders.textContent = pending;
+  if (pickupOrders) pickupOrders.textContent = pickup;
+  if (deliveredOrders) deliveredOrders.textContent = delivered;
 }
 
 
@@ -1169,59 +473,19 @@ function updateStats(
    STATUS NORMALIZE
 ===================================================== */
 
-function normalizeStatus(
-  status
-) {
+function normalizeStatus(status) {
+  if (!status) return "pending";
 
-  if (!status) {
+  const value = String(status)
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
 
-    return "pending";
-
-  }
-
-
-  const value =
-    String(status)
-      .trim()
-      .toLowerCase()
-      .replace(
-        /[\s-]+/g,
-        "_"
-      );
-
-
-  if (
-    value === "delivery" ||
-    value === "delivered"
-  ) {
-
-    return "delivered";
-
-  }
-
-
-  if (
-    value === "pickup" ||
-    value === "picked"
-  ) {
-
-    return "picked_up";
-
-  }
-
-
-  if (
-    value === "pressing" ||
-    value === "press"
-  ) {
-
-    return "cleaning";
-
-  }
-
+  if (value === "delivery" || value === "delivered") return "delivered";
+  if (value === "pickup" || value === "picked") return "picked_up";
+  if (value === "pressing" || value === "press") return "cleaning";
 
   return value;
-
 }
 
 
@@ -1229,50 +493,21 @@ function normalizeStatus(
    STATUS LABEL
 ===================================================== */
 
-function getStatusLabel(
-  status
-) {
-
-  const value =
-    normalizeStatus(
-      status
-    );
-
+function getStatusLabel(status) {
+  const value = normalizeStatus(status);
 
   const labels = {
-
-    pending:
-      "Pending",
-
-    confirmed:
-      "Confirmed",
-
-    picked_up:
-      "Picked Up",
-
-    cleaning:
-      "Cleaning",
-
-    ready:
-      "Ready",
-
-    out_for_delivery:
-      "Out for Delivery",
-
-    delivered:
-      "Delivered",
-
-    cancelled:
-      "Cancelled"
-
+    pending: "Pending",
+    confirmed: "Confirmed",
+    picked_up: "Picked Up",
+    cleaning: "Cleaning",
+    ready: "Ready",
+    out_for_delivery: "Out for Delivery",
+    delivered: "Delivered",
+    cancelled: "Cancelled"
   };
 
-
-  return (
-    labels[value] ||
-    "Pending"
-  );
-
+  return labels[value] || "Pending";
 }
 
 
@@ -1280,17 +515,8 @@ function getStatusLabel(
    STATUS CLASS
 ===================================================== */
 
-function getStatusClass(
-  status
-) {
-
-  return (
-    "status-" +
-    normalizeStatus(
-      status
-    )
-  );
-
+function getStatusClass(status) {
+  return "status-" + normalizeStatus(status);
 }
 
 
@@ -1298,26 +524,14 @@ function getStatusClass(
    ERROR
 ===================================================== */
 
-function showOrdersError(
-  message
-) {
-
+function showOrdersError(message) {
   if (!ordersContainer) return;
 
-
   ordersContainer.innerHTML = `
-
     <div class="loading">
-
-      ❌ ${escapeHTML(
-        message ||
-        "Orders load नहीं हो सके।"
-      )}
-
+      ❌ ${escapeHTML(message || "Orders load नहीं हो सके।")}
     </div>
-
   `;
-
 }
 
 
@@ -1325,35 +539,11 @@ function showOrdersError(
    HTML ESCAPE
 ===================================================== */
 
-function escapeHTML(
-  value
-) {
-
+function escapeHTML(value) {
   return String(value)
-
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-
-    .replace(
-      /</g,
-      "&lt;"
-    )
-
-    .replace(
-      />/g,
-      "&gt;"
-    )
-
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
